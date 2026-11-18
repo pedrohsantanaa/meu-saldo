@@ -53,7 +53,7 @@ Keep doc edits in Portuguese and in character style consistent with the existing
 
 ## Pending decisions
 
-- Specs contain items marked **"Pendente de definição"** — they are **not** rules: do not implement behavior that depends on them without a product-owner decision (`tasks.md` §1). Fase 0 (T-001…T-008) resolved DP-02…DP-07 and DD-01…DD-08 (plus DP-04/DD-02 in T-002). **Still pending:** DP-01 (shared accounts — out of MVP), DP-08 (password recovery — T-026), DP-09 (data export — future), DD-09 (investment goals), DD-10 (missing budget shown as "Não definido" vs zero), and the "próximo do limite" threshold (`spec.md` §6.13, suggests 80%).
+- Specs contain items marked **"Pendente de definição"** — they are **not** rules: do not implement behavior that depends on them without a product-owner decision (`tasks.md` §1). Fase 0 (T-001…T-008) resolved DP-02…DP-07 and DD-01…DD-08 (plus DP-04/DD-02 in T-002); **DP-08** (password recovery) was approved and implemented in T-026. **Still pending:** DP-01 (shared accounts — out of MVP), DP-09 (data export — future), DD-09 (investment goals), DD-10 (missing budget shown as "Não definido" vs zero), and the "próximo do limite" threshold (`spec.md` §6.13, suggests 80%).
 
 ## Conventions in the docs
 

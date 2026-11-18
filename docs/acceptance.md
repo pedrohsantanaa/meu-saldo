@@ -161,6 +161,27 @@ deverá ser revelado ou alterado.
 autorizadas, sem acesso automático às descrições, valores ou
 movimentações financeiras particulares dos usuários.
 
+### AC-108 --- Solicitar redefinição de senha \[P0\]
+
+**Dado** que o usuário esqueceu a senha,\
+**quando** solicitar a redefinição de senha por e-mail,\
+**então** a resposta deverá ser idêntica para e-mails cadastrados ou não,
+sem revelar se a conta existe.
+
+### AC-109 --- Redefinir senha com token válido \[P0\]
+
+**Dado** que o usuário recebeu o link de redefinição,\
+**quando** definir uma nova senha com o token válido,\
+**então** a senha deverá ser atualizada, o token invalidado (uso único) e
+todas as sessões abertas encerradas.
+
+### AC-110 --- Token de redefinição inválido ou expirado \[P0\]
+
+**Dado** que o token de redefinição é inválido, já utilizado ou
+expirado,\
+**quando** o usuário tentar redefinir a senha,\
+**então** o sistema deverá recusar a operação com mensagem clara.
+
 ## 5. Categorias
 
 ### AC-011 --- Criar categoria \[P0\]

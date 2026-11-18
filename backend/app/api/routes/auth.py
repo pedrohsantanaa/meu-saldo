@@ -6,8 +6,10 @@ from app.core.database import get_db
 from app.core.security import decode_access_token
 from app.models import User
 from app.schemas.auth import (
+    ForgotPasswordRequest,
     LoginRequest,
     MessageResponse,
+    ResetPasswordRequest,
     TokenResponse,
     UserCreate,
     UserRead,
@@ -51,3 +53,25 @@ def logout(
 @router.get("/me", response_model=UserRead)
 def me(current_user: User = Depends(get_current_user)) -> User:
     return current_user
+
+
+@router.post("/forgot-password", response_model=MessageResponse)
+def forgot_password(
+    payload: ForgotPasswordRequest, db: Session = Depends(get_db)
+) -> MessageResponse:
+    auth_service.request_password_reset(db, payload.email)
+    # Resposta sempre igual: não revela se o e-mail está cadastrado (T-026).
+    return MessageResponse(
+        message=(
+            "Se o e-mail estiver cadastrado, você receberá as "
+            "instruções de redefinição."
+        )
+    )
+
+
+@router.post("/reset-password", response_model=MessageResponse)
+def reset_password(
+    payload: ResetPasswordRequest, db: Session = Depends(get_db)
+) -> MessageResponse:
+    auth_service.reset_password(db, payload.token, payload.password)
+    return MessageResponse(message="Senha redefinida com sucesso.")

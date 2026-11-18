@@ -2,12 +2,14 @@ import { createRouter, createWebHistory } from 'vue-router'
 
 import CartoesPage from '../pages/CartoesPage.vue'
 import CategoriasPage from '../pages/CategoriasPage.vue'
+import ForgotPasswordPage from '../pages/ForgotPasswordPage.vue'
 import LoginPage from '../pages/LoginPage.vue'
 import MovimentacoesPage from '../pages/MovimentacoesPage.vue'
 import OrcamentosPage from '../pages/OrcamentosPage.vue'
 import PlaceholderPage from '../pages/PlaceholderPage.vue'
 import RegisterPage from '../pages/RegisterPage.vue'
 import RelatoriosPage from '../pages/RelatoriosPage.vue'
+import ResetPasswordPage from '../pages/ResetPasswordPage.vue'
 import VisaoAnualPage from '../pages/VisaoAnualPage.vue'
 import VisaoMensalPage from '../pages/VisaoMensalPage.vue'
 import { useAuthStore } from '../stores/auth'
@@ -24,6 +26,18 @@ const routes = [
     name: 'registro',
     component: RegisterPage,
     meta: { title: 'Criar conta', public: true },
+  },
+  {
+    path: '/esqueci-senha',
+    name: 'esqueci-senha',
+    component: ForgotPasswordPage,
+    meta: { title: 'Recuperar senha', public: true },
+  },
+  {
+    path: '/redefinir-senha',
+    name: 'redefinir-senha',
+    component: ResetPasswordPage,
+    meta: { title: 'Redefinir senha', public: true },
   },
   {
     path: '/',

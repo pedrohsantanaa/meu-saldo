@@ -76,6 +76,14 @@ async function onSubmit() {
           Cadastre-se
         </RouterLink>
       </p>
+      <p class="mt-2 text-center text-sm text-neutral-500">
+        <RouterLink
+          to="/esqueci-senha"
+          class="font-medium text-primary hover:text-primary-dark"
+        >
+          Esqueci minha senha
+        </RouterLink>
+      </p>
     </div>
   </div>
 </template>

@@ -352,13 +352,19 @@ usuários.
         sem token, logout revoga sessão, isolamento entre usuários).
         A validação de AC-009 com recursos de negócio será ampliada nas
         fases 4 a 7.
--   [!] **T-026 \[P1\]** Implementar recuperação de senha, caso aprovada
+-   [x] **T-026 \[P1\]** Implementar recuperação de senha, caso aprovada
     para o MVP.
     -   Definir envio de e-mail.
     -   Criar fluxo seguro de redefinição.
     -   Não revelar se determinado e-mail está cadastrado.
-    -   **Bloqueada por DP-08:** a decisão sobre recuperação de senha por
-        e-mail no MVP ainda não foi confirmada.
+    -   **Resultado:** DP-08 aprovada pelo responsável. Fluxo
+        implementado: `POST /api/auth/forgot-password` (resposta
+        genérica) e `POST /api/auth/reset-password` com token de uso
+        único (hash SHA-256 no banco, expiração de 30 min), que encerra
+        todas as sessões ao redefinir a senha. Envio de e-mail
+        configurável (console em desenvolvimento, SMTP em produção) e
+        telas "Esqueci minha senha" e "Redefinir senha". Ver AC-108 a
+        AC-110.
 
 **Critério de conclusão da fase:** usuário consegue criar conta e
 acessar áreas privadas; testes comprovam isolamento dos dados.

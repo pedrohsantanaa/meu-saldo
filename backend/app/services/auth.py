@@ -1,5 +1,6 @@
-"""Regras de autenticação: cadastro, login e sessão (T-022/T-023)."""
+"""Regras de autenticação: cadastro, login, sessão e recuperação de senha."""
 
+import hashlib
 import secrets
 from datetime import UTC, datetime, timedelta
 
@@ -9,8 +10,13 @@ from sqlalchemy.orm import Session
 from app.core.config import settings
 from app.core.errors import AppError
 from app.core.security import create_access_token, hash_password, verify_password
-from app.models import AuthSession, User
+from app.models import AuthSession, PasswordResetToken, User
 from app.schemas.auth import LoginRequest, UserCreate
+from app.services import email as email_service
+
+
+def _utcnow() -> datetime:
+    return datetime.now(UTC).replace(tzinfo=None)
 
 
 def register_user(db: Session, payload: UserCreate) -> User:
@@ -49,8 +55,7 @@ def create_session(db: Session, user: User) -> tuple[str, int]:
     session = AuthSession(
         id=secrets.token_hex(32),
         user_id=user.id,
-        expires_at=datetime.now(UTC).replace(tzinfo=None)
-        + timedelta(minutes=settings.access_token_expire_minutes),
+        expires_at=_utcnow() + timedelta(minutes=settings.access_token_expire_minutes),
     )
     db.add(session)
     db.commit()
@@ -64,3 +69,56 @@ def revoke_session(db: Session, session_id: str) -> None:
     if session is not None:
         db.delete(session)
         db.commit()
+
+
+def revoke_all_sessions(db: Session, user_id: int) -> None:
+    sessions = db.scalars(select(AuthSession).where(AuthSession.user_id == user_id))
+    for session in sessions:
+        db.delete(session)
+    db.commit()
+
+
+def request_password_reset(db: Session, email: str) -> None:
+    """Prepara a redefinição de senha.
+
+    Não revela se o e-mail está cadastrado: para e-mails desconhecidos,
+    nenhuma ação é tomada e a rota responde sempre da mesma forma.
+    """
+    user = db.scalar(select(User).where(User.email == email.lower()))
+    if user is None:
+        return
+
+    # Token de uso único, com hash SHA-256 no banco (T-026).
+    token = secrets.token_urlsafe(32)
+    reset = PasswordResetToken(
+        id=_hash_token(token),
+        user_id=user.id,
+        expires_at=_utcnow()
+        + timedelta(minutes=settings.reset_token_expire_minutes),
+    )
+    db.add(reset)
+    db.commit()
+
+    email_service.send_password_reset(user.email, token)
+
+
+def reset_password(db: Session, token: str, new_password: str) -> None:
+    record = db.get(PasswordResetToken, _hash_token(token))
+    if record is None or record.expires_at <= _utcnow():
+        raise AppError(
+            code="invalid_reset_token",
+            message="O link de redefinição é inválido ou expirou.",
+            http_status=400,
+        )
+
+    user = db.get(User, record.user_id)
+    user.password_hash = hash_password(new_password)
+
+    # Uso único + troca de senha encerra todas as sessões abertas.
+    db.delete(record)
+    db.commit()
+    revoke_all_sessions(db, user.id)
+
+
+def _hash_token(token: str) -> str:
+    return hashlib.sha256(token.encode("utf-8")).hexdigest()

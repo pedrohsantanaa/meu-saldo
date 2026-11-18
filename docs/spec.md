@@ -184,6 +184,13 @@ sistema.
 logout revoga a sessão e invalida o acesso imediatamente. As senhas são
 armazenadas com hash bcrypt.
 
+**Recuperação de senha (T-026, DP-08):** o usuário solicita a
+redefinição informando o e-mail e recebe um link com token de uso único
+(expiração de 30 minutos). A resposta é sempre a mesma, sem revelar se o
+e-mail está cadastrado. Ao redefinir a senha, todas as sessões abertas
+são encerradas. Em desenvolvimento os e-mails são registrados no log do
+back-end (backend `console`); em produção, envio por SMTP.
+
 **Critérios de aceitação:**
 
 -   Um usuário com credenciais válidas consegue acessar as áreas
@@ -879,7 +886,11 @@ DP-03 (sem parcelamento no MVP --- seção 6.9), DP-05 (pagamento de
 fatura registrado como liquidação, liberando limite --- seções 6.11 e
 7.2), DP-06 (limite comprometido = compras de faturas não pagas ---
 seção 6.11) e DP-07 (compras no dia do fechamento entram no ciclo
-seguinte --- seção 6.10). Seguem pendentes: DP-01, DP-08 e DP-09.
+seguinte --- seção 6.10). Seguem pendentes: DP-01 e DP-09.
+
+**Nota (DP-08):** a recuperação de senha por e-mail foi aprovada e
+implementada (T-026): redefinição com token de uso único e expiração de
+30 minutos, sem revelar se o e-mail está cadastrado (seção 6.2).
 
 ## 13. Estratégia de implementação sugerida
 

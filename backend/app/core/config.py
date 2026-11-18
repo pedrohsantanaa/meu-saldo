@@ -22,6 +22,16 @@ class Settings(BaseSettings):
     secret_key: str = "meusaldo-dev-secret-troque-em-producao"
     access_token_expire_minutes: int = 60
 
+    # Recuperação de senha (T-026).
+    reset_token_expire_minutes: int = 30
+    frontend_base_url: str = "http://localhost:5173"
+    email_backend: str = "console"  # "console" (dev) ou "smtp" (produção)
+    email_from: str = "no-reply@meusaldo.app"
+    smtp_host: str = ""
+    smtp_port: int = 587
+    smtp_user: str = ""
+    smtp_password: str = ""
+
     @property
     def cors_origins_list(self) -> list[str]:
         return [
