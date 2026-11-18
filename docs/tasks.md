@@ -89,7 +89,7 @@ meuSaldo/
 **Objetivo:** resolver decisões que afetam cálculos, persistência e
 comportamento antes de implementar as partes dependentes.
 
--   [ ] **T-001 \[P0\]** Revisar os documentos e alinhar nomes e
+-   [x] **T-001 \[P0\]** Revisar os documentos e alinhar nomes e
     decisões do produto.
     -   Confirmar o nome `meuSaldo` em todos os documentos.
     -   Confirmar que a visão geral mensal e anual fazem parte do
@@ -98,50 +98,84 @@ comportamento antes de implementar as partes dependentes.
         mês.
     -   Registrar divergências encontradas entre `requirements.md`,
         `spec.md` e `design.md`.
--   [ ] **T-002 \[P0\]** Definir a política de contabilização de
+    -   **Resultado:** documentos alinhados nas decisões confirmadas;
+        divergências registradas na seção 15 do `spec.md`.
+-   [x] **T-002 \[P0\]** Definir a política de contabilização de
     despesas e compras no cartão.
     -   Determinar qual data define o mês da despesa.
     -   Definir como compras e faturas aparecem na visão mensal e anual.
     -   Garantir que compra e pagamento da fatura não sejam
         contabilizados duas vezes.
     -   Documentar exemplos de cálculo.
--   [ ] **T-003 \[P0\]** Definir a relação entre mês da compra, mês da
+    -   **Resultado:** política definida em `spec.md` §7.2, com
+        exemplos na seção 7.4: movimentações comuns contam na data do
+        lançamento; compras no cartão contam no ciclo da fatura,
+        identificada pelo mês do vencimento (compras após o fechamento
+        vão ao ciclo seguinte); a fatura é contada uma única vez e o
+        pagamento é liquidação.
+-   [x] **T-003 \[P0\]** Definir a relação entre mês da compra, mês da
     fatura e mês do orçamento.
     -   Decidir se o orçamento considera a data da compra ou o ciclo da
         fatura.
     -   Aplicar a mesma regra na tela de cartões e na tela de
         orçamentos.
--   [ ] **T-004 \[P1\]** Definir regras de fechamento e vencimento das
+    -   **Resultado:** decidido junto com T-002, conforme o uso do
+        responsável pelo produto: o orçamento segue o ciclo da fatura
+        (mês do vencimento da fatura), com regra única para cartões,
+        faturas, orçamentos e relatórios (`spec.md` §7.2).
+-   [x] **T-004 \[P1\]** Definir regras de fechamento e vencimento das
     faturas.
     -   Definir o tratamento de compras feitas no dia do fechamento.
     -   Definir o cálculo para meses com menos dias que o dia
         configurado.
     -   Definir como será criada a primeira fatura de um cartão.
--   [ ] **T-005 \[P1\]** Decidir se compras parceladas farão parte do
+    -   **Resultado:** definido em `spec.md` §6.10: compras no dia do
+        fechamento entram no ciclo seguinte; dias inexistentes no mês
+        usam o último dia do mês; a primeira fatura vai do cadastro até
+        a véspera do primeiro fechamento posterior. Ver AC-103 a
+        AC-105.
+-   [x] **T-005 \[P1\]** Decidir se compras parceladas farão parte do
     MVP.
     -   Se aprovadas, definir distribuição de centavos e atribuição das
         parcelas às faturas.
     -   Se não aprovadas, limitar a primeira versão a compras não
         parceladas e registrar parcelamento como evolução.
--   [ ] **T-006 \[P1\]** Definir o cálculo do limite comprometido e
+    -   **Resultado:** decidido com o responsável pelo produto: sem
+        parcelamento no MVP, somente compras à vista; parcelamento
+        registrado como evolução futura (`spec.md` §6.9).
+-   [x] **T-006 \[P1\]** Definir o cálculo do limite comprometido e
     disponível.
     -   Decidir se parcelas futuras comprometem o limite.
     -   Definir como pagamentos de fatura liberam limite.
--   [ ] **T-007 \[P1\]** Definir o escopo de recorrência de despesas
+    -   **Resultado:** definido em `spec.md` §6.11: comprometido = soma
+        das compras de faturas não pagas, deduzidos os pagamentos
+        registrados; pagamento total ou parcial da fatura libera o
+        limite (DP-05/DD-05 resolvidas). Ver AC-106.
+-   [x] **T-007 \[P1\]** Definir o escopo de recorrência de despesas
     fixas.
     -   Decidir se cada mês terá lançamentos manuais ou se haverá
         geração de despesas recorrentes.
     -   Não implementar recorrência automática sem essa decisão.
--   [ ] **T-008 \[P1\]** Definir categorias iniciais e tipos de
+    -   **Resultado:** decidido com o responsável pelo produto: despesas
+        fixas são lançadas manualmente, mês a mês; sem recorrência
+        automática no MVP (`spec.md` §6.5).
+-   [x] **T-008 \[P1\]** Definir categorias iniciais e tipos de
     movimentação.
     -   Separar receitas, despesas fixas, despesas variáveis e
         investimentos.
     -   Definir quais categorias padrão serão disponibilizadas.
     -   Definir se o usuário poderá criar, editar, desativar e reativar
         categorias.
+    -   **Resultado:** categorias totalmente editáveis (padrão e
+        próprias: criar, editar, desativar e reativar); lista de
+        categorias padrão iniciais em `spec.md` §6.3. Ver AC-107.
 
 **Critério de conclusão da fase:** decisões registradas nos documentos
 de especificação e regras necessárias aos cálculos aprovadas.
+
+**Fase 0 concluída:** todas as tarefas T-001 a T-008 foram definidas e
+registradas nos documentos de especificação (`spec.md`, `design.md` e
+`acceptance.md`).
 
 ## 6. Fase 1 --- Fundação do projeto e ambiente
 

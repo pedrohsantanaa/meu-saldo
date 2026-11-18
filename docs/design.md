@@ -59,9 +59,11 @@ deverão orientar a implementação.
     mês.
 -   O usuário poderá navegar para o mês anterior ou próximo sem perder o
     contexto.
--   A visão anual completa da planilha não será a tela principal do MVP.
-    Poderá ser considerada futuramente como relatório ou visão
-    comparativa.
+-   A visão mensal será a tela principal do MVP. A visão anual faz parte
+    do escopo planejado, como visão comparativa com os 12 meses em
+    colunas e alternância entre as duas visualizações (decisão posterior
+    do responsável pelo produto, registrada em `tasks.md` e
+    `acceptance.md`).
 
 ## 3. Princípios de design
 
@@ -315,8 +317,8 @@ Campos:
 -   Descrição.
 -   Categoria.
 -   Valor.
--   Quantidade de parcelas, caso o parcelamento seja confirmado para o
-    MVP.
+-   Quantidade de parcelas: não aplicável no MVP (sem parcelamento;
+    decisão T-005).
 -   Observações, opcionais.
 
 A compra deverá ser associada automaticamente ao usuário e ao cartão
@@ -642,7 +644,8 @@ deverão ser gravadas duas vezes como despesas independentes.
 
 **CreditCardInstallment**
 
-Necessária caso o parcelamento seja incluído no MVP.
+Não será utilizada no MVP (sem parcelamento; decisão T-005). Fica
+prevista para a evolução com compras parceladas.
 
 -   id
 -   purchase_id
@@ -796,8 +799,9 @@ Para cada combinação de cartão, mês e categoria:
 
 `Restante = orçamento - gastos`
 
-O sistema deverá definir se a atribuição ao mês ocorrerá pela data da
-compra ou pelo mês da fatura. Essa decisão precisa ser uniforme entre a
+A atribuição ao mês segue a política de contabilização definida em
+T-002 (`spec.md` §7.2): os gastos do mês são as compras atribuídas ao
+ciclo da fatura com vencimento naquele mês. A mesma regra vale para a
 tela de orçamento, as faturas e os relatórios.
 
 ### 11.3. Prevenção de dupla contagem
@@ -816,8 +820,8 @@ diferentes.
 -   O pagamento da fatura deverá ser tratado como liquidação da
     obrigação, e não como nova despesa de consumo.
 
-A política final de datas e contabilização deverá ser confirmada antes
-da implementação dos cálculos.
+A política final de datas e contabilização foi definida em T-002 e está
+registrada em `spec.md` §7.2.
 
 ## 12. Responsividade
 
@@ -932,6 +936,21 @@ As seguintes decisões afetam a implementação e precisam ser confirmadas:
                                                   como "Não definido",
                                                   sem assumir valor zero?
   -----------------------------------------------------------------------
+
+**Nota (T-002):** a decisão DD-02 foi definida: os gastos seguem o ciclo
+da fatura, atribuídos ao mês do vencimento da fatura, conforme `spec.md`
+§7.2. As demais decisões seguem pendentes.
+
+**Nota (T-004 a T-008):** também foram definidas as decisões DD-01
+(sem parcelamento no MVP), DD-03 (compras no dia do fechamento entram no
+ciclo seguinte; meses curtos usam o último dia do mês; primeira fatura
+inicia no cadastro do cartão), DD-04 (parcelas futuras comprometem o
+limite quando existirem), DD-05 (pagamento total ou parcial da fatura é
+registrado como liquidação e libera limite), DD-06 (o restante é o
+resultado dos lançamentos registrados, não o saldo bancário --- seção
+5.1), DD-07 (categorias padrão totalmente editáveis; lista em
+`spec.md` §6.3) e DD-08 (despesas fixas com lançamento manual mensal,
+sem recorrência automática no MVP). Seguem pendentes: DD-09 e DD-10.
 
 ## 16. Estratégia de implementação
 

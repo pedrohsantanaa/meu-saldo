@@ -570,6 +570,57 @@ cálculo de comprometimento,\
 **então** o limite disponível deverá corresponder ao limite total menos
 o valor comprometido, de acordo com a política aprovada.
 
+### AC-101 --- Competência da compra no cartão \[P0\]
+
+**Dado** que uma compra no cartão foi atribuída a um ciclo de fatura,\
+**quando** o sistema calcular os indicadores do período,\
+**então** a compra deverá ser considerada no período do ciclo da fatura
+(mês do vencimento da fatura), conforme `spec.md` §7.2.
+
+### AC-102 --- Compra após o fechamento entra no ciclo seguinte \[P0\]
+
+**Dado** que uma compra foi realizada após a data de fechamento da
+fatura,\
+**quando** o sistema atribuir a compra a um ciclo,\
+**então** a compra deverá pertencer ao ciclo seguinte e ser contabilizada
+naquele período, mesmo tendo sido realizada no mês anterior.
+
+### AC-103 --- Compra no dia do fechamento entra no ciclo seguinte \[P0\]
+
+**Dado** que uma compra foi realizada exatamente no dia de fechamento da
+fatura,\
+**quando** o sistema atribuir a compra a um ciclo,\
+**então** a compra deverá pertencer ao ciclo seguinte.
+
+### AC-104 --- Fechamento ou vencimento em mês curto \[P0\]
+
+**Dado** que um cartão possui dia de fechamento ou de vencimento que não
+existe em um determinado mês,\
+**quando** o sistema calcular as datas da fatura desse mês,\
+**então** deverá ser utilizado o último dia do mês correspondente.
+
+### AC-105 --- Primeira fatura após o cadastro do cartão \[P0\]
+
+**Dado** que um cartão acabou de ser cadastrado,\
+**quando** o sistema calcular a primeira fatura,\
+**então** o primeiro ciclo deverá começar na data de cadastro do cartão
+e terminar no dia anterior ao primeiro fechamento posterior ao cadastro.
+
+### AC-106 --- Pagamento da fatura libera limite \[P0\]
+
+**Dado** que uma fatura tem valor em aberto no limite comprometido do
+cartão,\
+**quando** o pagamento da fatura for registrado (total ou parcial),\
+**então** o valor pago deverá ser liberado do limite comprometido, sem
+gerar nova despesa de consumo.
+
+### AC-107 --- Editar categoria padrão \[P1\]
+
+**Dado** que existem categorias padrão do sistema,\
+**quando** o usuário editar, desativar ou reativar uma categoria,\
+**então** a operação deverá ser permitida para categorias padrão e
+próprias, preservando o histórico dos lançamentos associados.
+
 ## 13. Orçamentos por cartão e categoria
 
 ### AC-063 --- Selecionar mês e cartão \[P0\]

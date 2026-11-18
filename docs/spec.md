@@ -212,8 +212,23 @@ sistema.
     dos registros associados. A opção preferencial é desativá-la ou
     solicitar a reclassificação das movimentações.
 
-**Pendente de definição:** decidir se categorias padrão poderão ser
-editadas e quais categorias iniciais serão disponibilizadas.
+**Decisão (T-008):** as categorias são totalmente editáveis. O usuário
+poderá criar, editar, desativar e reativar categorias próprias e também
+alterar as categorias padrão do sistema (renomear, editar, desativar e
+reativar), preservando o histórico dos lançamentos associados.
+
+**Categorias padrão iniciais (T-008)**, ajustáveis pelo usuário:
+
+-   **Receitas:** Salário, Freelance/Extras, Rendimentos, Outras
+    receitas.
+-   **Despesas fixas:** Moradia (aluguel/condomínio), Água e energia,
+    Celular/internet, Plano de saúde, Plano odontológico, Academia,
+    Veículo/parcela, Assinaturas, Outras despesas fixas.
+-   **Despesas variáveis:** Alimentação, Lanches/restaurantes,
+    Transporte/combustível, Saúde, Educação, Beleza/cuidados pessoais,
+    Serviços domésticos, Lazer, Compras diversas, Extras.
+-   **Investimentos:** Poupança, Reserva de emergência, Objetivos e
+    reservas, Outros investimentos.
 
 **Critérios de aceitação:**
 
@@ -271,6 +286,7 @@ editadas e quais categorias iniciais serão disponibilizadas.
 -   Valor.
 -   Data da despesa.
 -   Categoria.
+-   Tipo de despesa: fixa ou variável.
 -   Forma de pagamento.
 -   Observações, opcionais.
 
@@ -284,10 +300,13 @@ editadas e quais categorias iniciais serão disponibilizadas.
 
 **Regras de negócio:**
 
--   Descrição, valor, data, categoria e forma de pagamento serão
-    obrigatórios.
+-   Descrição, valor, data, categoria, tipo de despesa e forma de
+    pagamento serão obrigatórios.
 -   O valor deverá ser maior que zero.
 -   A categoria deverá ser do tipo despesa.
+-   A despesa deverá ser classificada como fixa ou variável.
+-   As despesas fixas são lançadas manualmente, mês a mês; não haverá
+    geração automática de recorrência no MVP (T-007).
 -   A despesa deverá ser considerada no período correspondente à data da
     despesa, respeitando a regra de contabilização definida para cada
     forma de pagamento.
@@ -354,8 +373,9 @@ financeira.
 1.  Total de receitas do período.
 2.  Total de despesas do período.
 3.  Saldo do período.
-4.  Total de compras no cartão de crédito no período, apresentado
-    separadamente conforme a regra de contabilização.
+4.  Total de compras no cartão de crédito do período, apresentado
+    separadamente como informação e sem nova soma nas despesas, conforme
+    a política de contabilização da seção 7.2.
 5.  Últimas movimentações.
 6.  Despesas agrupadas por categoria.
 
@@ -423,7 +443,7 @@ compras e faturas.
 -   Data da compra.
 -   Cartão utilizado.
 -   Categoria.
--   Quantidade de parcelas, inicialmente igual a 1 quando não parcelada.
+-   Quantidade de parcelas: fixa em 1 no MVP, sem parcelamento (T-005).
 -   Observações, opcionais.
 
 **Regras de negócio:**
@@ -443,9 +463,11 @@ compras e faturas.
 -   O usuário poderá consultar, editar ou excluir suas próprias compras,
     respeitando o impacto nas faturas.
 
-**Pendente de definição:** confirmar se o MVP terá suporte a compras
-parceladas. Caso não seja essencial, recomenda-se iniciar com compras à
-vista no cartão e adicionar parcelamento em uma evolução próxima.
+**Decisão (T-005):** o MVP não terá compras parceladas; somente compras
+à vista. O parcelamento entra como evolução futura — quando aprovado,
+deverão ser definidos a distribuição de centavos entre as parcelas e a
+atribuição de cada parcela à sua fatura (AC-061 cobre o comportamento
+condicional).
 
 **Critérios de aceitação:**
 
@@ -481,25 +503,85 @@ vista no cartão e adicionar parcelamento em uma evolução próxima.
 -   O tratamento de pagamento parcial, pagamento total e atraso deverá
     ser definido antes de implementar baixa de fatura.
 
-**Pendente de definição:** especificar como será calculada a primeira
-fatura após o cadastro do cartão e como serão tratadas compras
-realizadas exatamente no dia do fechamento.
+**Regras definidas (T-004):**
+
+-   Compras realizadas exatamente no dia do fechamento entram no ciclo
+    seguinte: o ciclo é considerado encerrado no início do dia do
+    fechamento (AC-103).
+-   Se o dia configurado de fechamento ou vencimento não existir no mês
+    (ex.: dia 31 em fevereiro), utiliza-se o último dia do mês (AC-104).
+-   A primeira fatura de um cartão começa na data de cadastro do cartão
+    e vai até o dia anterior ao primeiro fechamento posterior ao
+    cadastro; a partir daí seguem-se os ciclos normais (AC-105).
 
 ### 6.11. Limite do cartão
 
 **Descrição:** apresentar o limite total e o valor comprometido com
 compras.
 
-**Regra inicial sugerida:**
+**Regra definida (T-006):**
 
 `Limite disponível = Limite total - Valor comprometido`
 
-O conceito de valor comprometido deverá considerar compras ainda não
-pagas e parcelas futuras, conforme a política de limite aprovada.
+-   **Valor comprometido** = soma das compras atribuídas a faturas ainda
+    não pagas, deduzidos os pagamentos já registrados. Sem parcelamento
+    no MVP não há parcelas futuras; quando o parcelamento existir, as
+    parcelas futuras também comprometem o limite.
+-   **O pagamento da fatura** (liquidação, sem nova despesa de consumo)
+    libera o limite: pagamento total libera todo o valor da fatura e
+    pagamento parcial libera o valor pago (AC-106).
+-   Edições e exclusões de compras recalculam o valor comprometido.
 
-**Pendente de definição:** decidir se o limite disponível será calculado
-considerando todas as parcelas futuras ou apenas compras lançadas em
-faturas ainda não pagas.
+### 6.12. Investimentos
+
+**Descrição:** registrar valores destinados a investimentos e reservas,
+apresentados separadamente das despesas de consumo.
+
+**Regras de negócio:**
+
+-   Os campos seguem os das despesas: descrição, valor, data, categoria
+    e observações, opcionais.
+-   O investimento não é uma despesa de consumo, mas é considerado nas
+    saídas do mês para o cálculo do restante (`design.md` §11.1).
+-   O registro deverá ser associado ao usuário autenticado, que poderá
+    editar ou excluir somente os próprios registros.
+
+**Pendente de definição:** se investimentos serão lançamentos simples ou
+terão objetivos e acompanhamento próprios (DD-09).
+
+**Critérios de aceitação:** ver AC-024 e AC-025 em `acceptance.md`.
+
+### 6.13. Orçamentos por cartão e categoria
+
+**Descrição:** permitir que o usuário planeje gastos mensais por
+categoria para cada cartão e acompanhe o valor gasto e o restante.
+
+**Campos previstos:**
+
+-   Cartão.
+-   Mês e ano de referência.
+-   Categoria do tipo despesa.
+-   Valor do orçamento.
+
+**Regras de negócio:**
+
+-   O orçamento é definido para a combinação usuário + cartão + mês +
+    categoria, que deverá ser única no sistema.
+-   A mesma categoria poderá possuir orçamentos diferentes em cartões
+    diferentes.
+-   `Restante da categoria = Orçamento - Gastos`, em que os gastos somam
+    as compras atribuídas ao contexto do orçamento.
+-   Os gastos do mês são as compras atribuídas à fatura com vencimento
+    naquele mês (seção 7.2).
+-   Quando não houver gastos, apresentar `R$ 0,00`.
+-   Quando não houver orçamento cadastrado, apresentar "Não definido",
+    sem assumir valor zero (confirmação pendente: DD-10).
+-   O restante negativo indica orçamento ultrapassado.
+
+**Pendente de definição:** qual percentual caracteriza "próximo do
+limite" (`design.md` §5.4 sugere 80%).
+
+**Critérios de aceitação:** ver AC-063 a AC-076 em `acceptance.md`.
 
 ## 7. Regras de cálculo financeiro
 
@@ -510,7 +592,11 @@ indicadores e dupla contagem de despesas.
 
 A fórmula conceitual é:
 
-`Saldo do período = Receitas consideradas - Despesas consideradas`
+`Saldo do período = Receitas consideradas - Saídas consideradas`
+
+As saídas consideradas reúnem despesas fixas, despesas variáveis e
+investimentos, conforme `design.md` §11.1. Na visão geral, o resultado
+do mês é apresentado como "restante" (AC-025).
 
 O sistema deverá definir uma única política de contabilização para cada
 tipo de movimentação. A data utilizada para agrupar os valores deverá
@@ -525,14 +611,37 @@ Portanto, o sistema não deverá somar a compra e o pagamento da fatura
 como duas despesas independentes no mesmo cálculo de resultado
 financeiro.
 
-**Regra recomendada para o MVP:**
+**Política de contabilização definida para o MVP (T-002):**
 
--   Registrar a compra no cartão como despesa.
--   Agrupar a compra na fatura correspondente.
--   Tratar o pagamento da fatura como liquidação/baixa da fatura, e não
-    como uma nova despesa de consumo.
--   Exibir separadamente o valor das faturas e o total de compras no
-    cartão.
+1.  **Movimentações comuns:** receitas, despesas e investimentos contam
+    no período da própria data do lançamento (data de recebimento, data
+    da despesa, data do investimento). O mesmo critério vale para as
+    visões mensal e anual (DP-04).
+2.  **Compras no cartão:** a compra conta no período do ciclo da fatura
+    a que pertence. A fatura é identificada pelo mês do seu
+    vencimento: a "fatura de janeiro" é a que vence em janeiro. O ciclo
+    de cada compra é calculado a partir do dia de fechamento
+    configurado no cadastro do cartão (seção 6.8).
+3.  **Compras após o fechamento:** pertencem ao ciclo seguinte, mesmo
+    tendo sido realizadas no mês anterior.
+4.  **A fatura** é a consolidação das compras do seu ciclo e é
+    contabilizada uma única vez, como despesa variável do período do
+    seu vencimento, aparecendo como item de cartão no grupo "Contas a
+    pagar --- Variáveis" da visão geral daquele mês.
+5.  **O detalhamento** de compras individuais permanece em Cartões e
+    Orçamentos e não é somado novamente aos totais da visão geral.
+6.  **O pagamento da fatura** é liquidação/baixa da obrigação e não gera
+    despesa de consumo; não altera receitas, despesas, saídas ou
+    restante do período. Seu registro no MVP libera o limite do cartão
+    (seção 6.11).
+7.  **Os orçamentos seguem o mesmo ciclo** da fatura: os gastos do mês
+    são as compras atribuídas à fatura com vencimento naquele mês
+    (T-003).
+8.  **A visão anual** agrega os valores mês a mês pela mesma política.
+
+**Regra do dia do fechamento (T-004, DD-03):** o ciclo é considerado
+encerrado no início do dia do fechamento; compras realizadas exatamente
+neste dia entram no ciclo seguinte (seção 6.10, AC-103).
 
 Se o sistema vier a oferecer controle de contas bancárias e fluxo de
 caixa por conta, a liquidação da fatura poderá gerar uma saída de caixa
@@ -546,6 +655,50 @@ vinculada à obrigação, sem duplicar a despesa no resultado.
 -   Garantir que o arredondamento de parcelas não altere a soma do valor
     original.
 -   Formatar valores para exibição no padrão brasileiro.
+
+### 7.4. Exemplos de contabilização (T-002)
+
+Cartão de exemplo: fechamento no dia 28 e vencimento no dia 10.
+Lembrete: a fatura é identificada pelo mês do vencimento.
+
+**Exemplo 1 --- Ciclo da fatura:**
+
+-   Compra de R\$ 150,00 em 10/11: entra no ciclo que fecha em 28/11,
+    com vencimento em 10/12 --- é a fatura de dezembro e conta em
+    dezembro.
+-   Compra de R\$ 80,00 em 29/11: foi realizada no mês anterior, mas
+    entra no ciclo seguinte (fecha em 28/12, vence em 10/01) --- é a
+    fatura de janeiro e conta em janeiro.
+-   Compras do cartão contabilizadas em dezembro: R\$ 150,00; em
+    janeiro: R\$ 80,00, além das demais compras do mesmo ciclo.
+
+**Exemplo 2 --- Sem dupla contagem:**
+
+-   A fatura de dezembro (vencimento em 10/12) totaliza R\$ 320,00 e é
+    paga no vencimento.
+-   Dezembro contabiliza R\$ 320,00 uma única vez, em despesas
+    variáveis.
+-   O pagamento é liquidação: não altera receitas, despesas, saídas nem
+    restante de nenhum mês.
+
+**Exemplo 3 --- Resumo do mês:**
+
+-   Receitas R\$ 5.000,00; despesas fixas R\$ 2.000,00; despesas
+    variáveis R\$ 800,00 (incluindo R\$ 300,00 de faturas de cartão com
+    vencimento no mês); investimentos R\$ 400,00.
+-   Total de saídas = 2.000,00 + 800,00 + 400,00 = R\$ 3.200,00.
+-   Restante = 5.000,00 - 3.200,00 = R\$ 1.800,00.
+-   Os R\$ 300,00 de compras no cartão já estão incluídos nas despesas
+    variáveis e não são somados novamente pela fatura.
+
+**Exemplo 4 --- Orçamento por ciclo (T-003):**
+
+-   Orçamento de "Gasolina" no cartão para dezembro: R\$ 500,00.
+-   Gastos de dezembro = compras da fatura com vencimento em dezembro
+    (ciclo que fecha em 28/11): R\$ 320,00.
+-   Restante da categoria = 500,00 - 320,00 = R\$ 180,00.
+-   Uma compra feita em 29/11 entraria na fatura de janeiro e contaria
+    no orçamento de janeiro.
 
 ## 8. Requisitos de interface e experiência
 
@@ -571,8 +724,9 @@ Diretrizes:
 -   Visão geral.
 -   Movimentações.
 -   Cartões.
+-   Orçamentos.
 -   Categorias.
--   Minha conta.
+-   Configurações.
 
 A administração deverá ficar em uma área separada, disponível somente
 para administradores.
@@ -645,6 +799,10 @@ A estrutura física de pastas e módulos deverá ser definida no documento
 -   [ ] Um usuário consegue cadastrar e gerenciar cartões.
 -   [ ] Um usuário consegue registrar compras no cartão e consultar suas
     faturas, conforme o escopo de cartão aprovado.
+-   [ ] Um usuário consegue definir orçamentos por cartão, categoria e
+    mês e acompanhar gastos e restante.
+-   [ ] Um usuário consegue registrar investimentos, considerados nas
+    saídas do mês.
 -   [ ] Os dados de um usuário não podem ser acessados por outro.
 -   [ ] As telas essenciais funcionam em computador e smartphone.
 -   [ ] A aplicação apresenta mensagens claras para erros e operações
@@ -700,6 +858,19 @@ implementação das funcionalidades correspondentes.
                           exportação de dados?     posterior.
   ------------------------------------------------------------------------
 
+**Nota (T-002):** a decisão DP-04 foi definida: existe uma única
+política de contabilização, registrada na seção 7.2 --- movimentações
+comuns contam no período da data do lançamento e compras no cartão contam
+no período do ciclo da fatura.
+
+**Nota (T-004 a T-008):** também foram definidas as decisões DP-02
+(categorias padrão e próprias, totalmente editáveis --- seção 6.3),
+DP-03 (sem parcelamento no MVP --- seção 6.9), DP-05 (pagamento de
+fatura registrado como liquidação, liberando limite --- seções 6.11 e
+7.2), DP-06 (limite comprometido = compras de faturas não pagas ---
+seção 6.11) e DP-07 (compras no dia do fechamento entram no ciclo
+seguinte --- seção 6.10). Seguem pendentes: DP-01, DP-08 e DP-09.
+
 ## 13. Estratégia de implementação sugerida
 
 A implementação deverá ocorrer em incrementos pequenos, mantendo o
@@ -741,6 +912,54 @@ sistema utilizável ao final de cada etapa.
   `acceptance.md`                     Consolidará cenários de teste e
                                       validação do produto.
   -----------------------------------------------------------------------
+
+------------------------------------------------------------------------
+
+## 15. Registro de divergências entre documentos (T-001)
+
+Revisão de alinhamento realizada na tarefa T-001 (`tasks.md`). As
+divergências encontradas entre `requirements.md`, `spec.md` e
+`design.md` e o tratamento aplicado são:
+
+1.  **Nome do produto:** o título de `requirements.md` era
+    "MeuFinanceiro". Corrigido para `meuSaldo`.
+2.  **Visão anual:** `design.md` §2.1 tratava a visão anual como futura.
+    Prevalece a decisão posterior registrada em `tasks.md` e
+    `acceptance.md`: as visões mensal e anual fazem parte do escopo
+    planejado. `design.md` corrigido.
+3.  **Escopo do MVP:** `requirements.md` §5.1 não listava investimentos,
+    orçamentos por cartão e categoria nem a visão anual. Atualizado
+    conforme as decisões confirmadas. A tabela de requisitos
+    funcionais (`requirements.md` §6) segue sem requisito formal para
+    orçamentos.
+4.  **Navegação principal:** `spec.md` §8.2 listava "Minha conta" e não
+    incluía "Orçamentos". Alinhado a `design.md` §4 e ao AC-077.
+5.  **Classificação de despesas fixas e variáveis:** prevista em
+    `design.md` §5.2 e AC-022, ausente em `spec.md` §6.5. Campo e regra
+    adicionados.
+6.  **Investimentos:** previstos em `design.md` e em AC-024/AC-025,
+    ausentes em `spec.md`. Seção 6.12 adicionada; a decisão pendente
+    sobre acompanhamento de objetivos permanece marcada (DD-09).
+7.  **Orçamentos por cartão, categoria e mês:** funcionalidade central em
+    `design.md` §5.4 e coberta por AC-063 a AC-076, ausente em
+    `spec.md`. Seção 6.13 adicionada; DD-02 foi definida em T-002
+    (orçamento segue o ciclo da fatura, pelo mês do vencimento) e DD-10
+    segue pendente.
+8.  **Resultado do período:** `spec.md` §7.1 usava "Saldo do período =
+    Receitas - Despesas"; `design.md` §11.1 e AC-025 definem "Restante =
+    Receitas - Saídas", com investimentos contabilizados nas saídas.
+    Fórmula ajustada.
+9.  **Indicadores da visão geral:** `spec.md` §6.7, `requirements.md`
+    §8.3 e `design.md` §5.1 descrevem conjuntos de indicadores
+    diferentes, em especial a apresentação de compras no cartão versus
+    faturas. Atualização (T-002): a apresentação foi definida na seção
+    7.2 (fatura contada uma única vez; compras como detalhamento); os
+    conjuntos de indicadores seguem divergentes e devem ser revistos na
+    implementação da visão geral (T-037).
+
+Divergências que dependem de decisões pendentes da Fase 0 (`tasks.md`)
+foram registradas, mas não resolvidas, e devem ser revistas após a
+conclusão de T-002 a T-008.
 
 ------------------------------------------------------------------------
 

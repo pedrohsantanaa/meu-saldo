@@ -1,4 +1,4 @@
-# requirements.md --- MeuFinanceiro
+# requirements.md --- meuSaldo
 
 ## 1. Visão geral do projeto
 
@@ -54,11 +54,14 @@ suas finanças pessoais de forma simples e acessível, especialmente:
 A primeira versão do sistema deverá contemplar:
 
 -   Cadastro e autenticação de usuários.
--   Registro de receitas e despesas.
--   Organização de movimentações por categorias.
+-   Registro de receitas, despesas e investimentos.
+-   Organização de movimentações por categorias, com despesas
+    classificadas como fixas ou variáveis.
 -   Visualização do saldo financeiro.
--   Dashboard com resumo financeiro.
--   Controle básico de cartões de crédito.
+-   Visão geral (dashboard) com resumo financeiro nas visualizações
+    mensal e anual.
+-   Controle de múltiplos cartões de crédito.
+-   Orçamentos mensais por categoria e por cartão.
 -   Consulta de movimentações por período.
 -   Interface web responsiva.
 
