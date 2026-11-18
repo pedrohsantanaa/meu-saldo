@@ -7,6 +7,7 @@ Revises:
 Create Date: 2026-11-18
 
 """
+
 from collections.abc import Sequence
 
 revision: str = "0001_baseline"

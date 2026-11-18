@@ -376,59 +376,93 @@ alimentam o controle financeiro.
 
 ### Categorias
 
--   [ ] **T-027 \[P0\]** Criar modelo e migrações de categorias.
+-   [x] **T-027 \[P0\]** Criar modelo e migrações de categorias.
     -   Suportar categorias padrão e categorias do usuário.
     -   Suportar grupos receita, despesa e investimento.
     -   Suportar classificação fixa ou variável para despesas.
     -   Suportar ativação e desativação.
--   [ ] **T-028 \[P0\]** Implementar API e interface de categorias.
+    -   **Resultado:** modelo `Category` (com `is_default`, grupos e
+        classificação) e migração `0004_categories_transactions`; as
+        categorias padrão do sistema (`spec.md` §6.3) são criadas como
+        cópias do usuário na inscrição e são totalmente editáveis.
+-   [x] **T-028 \[P0\]** Implementar API e interface de categorias.
     -   Listar, criar e editar categorias.
     -   Ativar e desativar categorias.
     -   Impedir incompatibilidade entre categoria e tipo de
         movimentação.
+    -   **Resultado:** `GET/POST/PUT /api/categories` e
+        `PATCH /api/categories/{id}/status`; nome único por usuário e
+        grupo (409); validação de grupo/classificação; tela de
+        Categorias com filtros, criação/edição em modal e desativação
+        com confirmação (preserva histórico, AC-014).
 
 ### Receitas
 
--   [ ] **T-029 \[P0\]** Criar modelo e API de receitas.
+-   [x] **T-029 \[P0\]** Criar modelo e API de receitas.
     -   Descrição, valor, data, categoria e observações.
     -   Validar valor positivo e categoria compatível.
     -   Associar ao usuário autenticado.
--   [ ] **T-030 \[P0\]** Criar formulário e listagem de receitas.
+    -   **Resultado:** modelo `Transaction` (receita, despesa e
+        investimento) e `POST /api/transactions` com valor > 0 (AC-016),
+        categoria compatível (AC-012) e escopo por usuário.
+-   [x] **T-030 \[P0\]** Criar formulário e listagem de receitas.
     -   Cadastrar, editar e excluir.
     -   Apresentar mensagens de validação.
     -   Atualizar informações após salvar.
+    -   **Resultado:** `TransactionForm` (modal) e listagem na tela de
+        Movimentações, com mensagens de erro do envelope padrão e
+        recarga após salvar/excluir.
 
 ### Despesas
 
--   [ ] **T-031 \[P0\]** Criar modelo e API de despesas.
+-   [x] **T-031 \[P0\]** Criar modelo e API de despesas.
     -   Descrição, valor, data, categoria, forma de pagamento e
         observações.
     -   Classificação fixa ou variável.
     -   Validar valor e categoria.
--   [ ] **T-032 \[P0\]** Criar formulário e listagem de despesas.
+    -   **Resultado:** campos no modelo `Transaction`; despesas exigem
+        classificação fixa/variável (AC-022) e forma de pagamento
+        (dinheiro, pix, débito ou outra --- cartão de crédito entra na
+        Fase 6, com o cadastro de cartões).
+-   [x] **T-032 \[P0\]** Criar formulário e listagem de despesas.
     -   Cadastrar, editar e excluir.
     -   Exibir forma de pagamento e classificação.
     -   Atualizar informações após salvar.
+    -   **Resultado:** mesmos fluxos de T-030, exibindo classificação e
+        forma de pagamento na listagem.
 
 ### Investimentos
 
--   [ ] **T-033 \[P1\]** Implementar registro de investimentos.
+-   [x] **T-033 \[P1\]** Implementar registro de investimentos.
     -   Descrição, valor, data, categoria ou objetivo.
     -   Apresentar investimentos em seção própria.
     -   Considerar investimentos no cálculo do restante conforme regra
         aprovada.
+    -   **Resultado:** tipo `investment` no modelo e na API, com
+        categorias próprias (ex.: Poupança) e badge distinto na
+        listagem; o cálculo do restante é da Fase 5 (AC-025).
 
 ### Histórico
 
--   [ ] **T-034 \[P0\]** Criar tela de movimentações.
+-   [x] **T-034 \[P0\]** Criar tela de movimentações.
     -   Listar registros por data.
     -   Filtrar por período, tipo, categoria e forma de pagamento.
     -   Oferecer ações de edição e exclusão.
     -   Exibir estado vazio e filtros sem resultado.
+    -   **Resultado:** tela de Movimentações com dados persistidos,
+        ordenação por data (mais recentes primeiro, AC-027), filtros
+        combináveis (período via MonthSelector, tipo, categoria, forma
+        de pagamento e busca), edição/exclusão com confirmação (AC-081)
+        e estados vazios.
 
 **Critério de conclusão da fase:** usuário consegue registrar, editar,
 excluir, filtrar e consultar seus registros financeiros com dados
 persistidos.
+
+**Fase 4 concluída:** critério atendido, verificado ponta a ponta com
+Postgres real (migração `0004`, seed de 27 categorias padrão, CRUD de
+movimentações e filtros). Testes: 40 no back-end (incluindo isolamento
+por usuário com dados reais, AC-009) e 21 no front-end.
 
 ## 10. Fase 5 --- Visão geral mensal e anual
 

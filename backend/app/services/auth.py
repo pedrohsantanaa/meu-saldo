@@ -13,6 +13,7 @@ from app.core.security import create_access_token, hash_password, verify_passwor
 from app.models import AuthSession, PasswordResetToken, User
 from app.schemas.auth import LoginRequest, UserCreate
 from app.services import email as email_service
+from app.services.seed import seed_default_categories
 
 
 def _utcnow() -> datetime:
@@ -36,6 +37,9 @@ def register_user(db: Session, payload: UserCreate) -> User:
     db.add(user)
     db.commit()
     db.refresh(user)
+
+    # Categorias padrão do sistema como cópias do usuário (T-008).
+    seed_default_categories(db, user)
     return user
 
 
@@ -93,8 +97,7 @@ def request_password_reset(db: Session, email: str) -> None:
     reset = PasswordResetToken(
         id=_hash_token(token),
         user_id=user.id,
-        expires_at=_utcnow()
-        + timedelta(minutes=settings.reset_token_expire_minutes),
+        expires_at=_utcnow() + timedelta(minutes=settings.reset_token_expire_minutes),
     )
     db.add(reset)
     db.commit()

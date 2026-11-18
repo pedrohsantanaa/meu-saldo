@@ -22,9 +22,7 @@ def test_forgot_password_responde_igual_para_email_conhecido_ou_nao(
     sent = capture_email(monkeypatch)
     register(client)
 
-    known = client.post(
-        "/api/auth/forgot-password", json={"email": REGISTER["email"]}
-    )
+    known = client.post("/api/auth/forgot-password", json={"email": REGISTER["email"]})
     unknown = client.post(
         "/api/auth/forgot-password", json={"email": "ninguem@example.com"}
     )
@@ -107,9 +105,7 @@ def test_reset_password_rejeita_token_expirado(client, monkeypatch, db_session_f
 
     db = db_session_factory()
     record = db.scalar(select(PasswordResetToken))
-    record.expires_at = datetime.now(UTC).replace(tzinfo=None) - timedelta(
-        minutes=1
-    )
+    record.expires_at = datetime.now(UTC).replace(tzinfo=None) - timedelta(minutes=1)
     db.commit()
     db.close()
 
