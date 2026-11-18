@@ -471,7 +471,7 @@ visualizações integradas.
 
 ### Visão mensal
 
--   [ ] **T-035 \[P0\]** Implementar serviço de resumo mensal no
+-   [x] **T-035 \[P0\]** Implementar serviço de resumo mensal no
     back-end.
     -   Total de receitas.
     -   Total de despesas fixas.
@@ -480,26 +480,42 @@ visualizações integradas.
     -   Total de saídas.
     -   Restante do mês.
     -   Aplicar a política de contabilização aprovada.
--   [ ] **T-036 \[P0\]** Implementar API do dashboard mensal.
+    -   **Resultado:** `app/services/dashboard.py` com as fórmulas
+        aprovadas (`saídas = fixas + variáveis + investimentos`;
+        `restante = receitas − saídas`, AC-025/AC-033/AC-034), valores
+        normalizados em duas casas decimais (spec §7.3) e agrupamentos
+        por categoria.
+-   [x] **T-036 \[P0\]** Implementar API do dashboard mensal.
     -   Receber mês e ano.
     -   Retornar indicadores e itens agrupados.
     -   Retornar últimas movimentações, se aplicável.
--   [ ] **T-037 \[P0\]** Implementar interface da visão mensal.
+    -   **Resultado:** `GET /api/dashboard/monthly?month=AAAA-MM` com
+        indicadores, grupos (receitas, fixas, variáveis, investimentos),
+        despesas por categoria, últimas movimentações e tendência de 6
+        meses para o gráfico.
+-   [x] **T-037 \[P0\]** Implementar interface da visão mensal.
     -   Seletor de mês e ano.
     -   Indicadores financeiros.
     -   Seções de contas a receber, despesas fixas, despesas variáveis e
         investimentos.
     -   Resumo do mês.
     -   Acesso rápido para adicionar movimentação.
--   [ ] **T-038 \[P0\]** Implementar navegação entre meses.
+    -   **Resultado:** `VisaoMensalPage` com dados reais: indicadores,
+        gráficos (composição e tendência), as quatro seções de grupos,
+        últimas movimentações e botão que abre o formulário em
+        `/movimentacoes?novo=1`.
+-   [x] **T-038 \[P0\]** Implementar navegação entre meses.
     -   Mês anterior.
     -   Próximo mês.
     -   Retorno ao mês atual.
     -   Preservar o contexto ao alternar de visualização.
+    -   **Resultado:** `MonthSelector` com anterior/próximo/"Hoje" e
+        parâmetro `?month=AAAA-MM` preservando o contexto vindo da visão
+        anual.
 
 ### Visão anual
 
--   [ ] **T-039 \[P1\]** Implementar serviço de resumo anual no
+-   [x] **T-039 \[P1\]** Implementar serviço de resumo anual no
     back-end.
     -   Receber ano selecionado.
     -   Calcular os totais de cada mês.
@@ -507,29 +523,48 @@ visualizações integradas.
         investimentos.
     -   Calcular restante de cada mês.
     -   Evitar duplicidade de compras e faturas.
--   [ ] **T-040 \[P1\]** Implementar API do dashboard anual.
+    -   **Resultado:** `annual_summary` em `app/services/dashboard.py`;
+        sem compras de cartão até a Fase 6, não há risco de duplicidade
+        com faturas (política registrada em `spec.md` §7.2).
+-   [x] **T-040 \[P1\]** Implementar API do dashboard anual.
     -   Retornar os 12 meses, inclusive meses sem movimentação.
     -   Retornar totais anuais e valores por grupo.
     -   Garantir ordenação cronológica.
--   [ ] **T-041 \[P1\]** Implementar interface da visão anual.
+    -   **Resultado:** `GET /api/dashboard/annual?year=AAAA` com os 12
+        meses (zeros nos meses vazios, AC-041) em ordem cronológica e
+        totais anuais.
+-   [x] **T-041 \[P1\]** Implementar interface da visão anual.
     -   Apresentar meses em colunas.
     -   Apresentar grupos financeiros em linhas.
     -   Exibir totais mensais e anuais.
     -   Permitir selecionar um mês para abrir sua visão mensal.
     -   Permitir navegar entre anos.
--   [ ] **T-042 \[P1\]** Implementar alternância mensal/anual.
+    -   **Resultado:** `VisaoAnualPage` com tabela de 12 meses, gráfico
+        de evolução, "Totais do Ano", seletor de ano e clique em qualquer
+        mês abrindo a visão mensal correspondente.
+-   [x] **T-042 \[P1\]** Implementar alternância mensal/anual.
     -   Manter o ano selecionado.
     -   Preservar o mês de referência quando fizer sentido.
     -   Exibir claramente qual visualização está ativa.
--   [ ] **T-043 \[P1\]** Validar visão anual em telas menores.
+    -   **Resultado:** alternância pelo menu (item ativo destacado na
+        navegação); o mês de referência viaja pelo parâmetro `?month`.
+-   [x] **T-043 \[P1\]** Validar visão anual em telas menores.
     -   Implementar rolagem horizontal controlada ou apresentação
         compacta.
     -   Evitar truncamento de valores.
     -   Manter os meses identificáveis.
+    -   **Resultado:** tabela com rolagem horizontal e largura mínima
+        preservando os 12 meses identificáveis; valores sem truncamento
+        (algarismos tabulares). Recomenda-se passada manual em telas
+        pequenas junto com a revisão de usabilidade (T-066).
 
 **Critério de conclusão da fase:** os dados da visão mensal e anual são
 consistentes entre si; selecionar um mês na visão anual abre o resumo
 mensal correspondente.
+
+**Fase 5 concluída:** consistência mensal × anual verificada em teste
+automatizado e ponta a ponta com Postgres real; clique no mês da visão
+anual abre a visão mensal. Testes: 47 no back-end e 21 no front-end.
 
 ## 11. Fase 6 --- Múltiplos cartões, compras e faturas
 

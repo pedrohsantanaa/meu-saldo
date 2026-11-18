@@ -164,8 +164,7 @@ def _validate_movement(
         raise AppError(
             code="category_type_mismatch",
             message=(
-                "A categoria escolhida não é compatível com o tipo "
-                "da movimentação."
+                "A categoria escolhida não é compatível com o tipo da movimentação."
             ),
             http_status=400,
         )

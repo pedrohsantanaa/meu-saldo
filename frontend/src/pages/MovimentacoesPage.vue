@@ -1,5 +1,6 @@
 <script setup>
 import { computed, onMounted, ref, watch } from 'vue'
+import { useRoute } from 'vue-router'
 import {
   ArrowDownTrayIcon,
   MagnifyingGlassIcon,
@@ -28,6 +29,7 @@ const search = ref('')
 const typeFilter = ref('')
 const categoryFilter = ref('')
 const paymentFilter = ref('')
+const route = useRoute()
 
 const movements = ref([])
 const categories = ref([])
@@ -151,6 +153,9 @@ async function onConfirmDelete() {
 onMounted(async () => {
   categories.value = await api.get('/categories')
   await load()
+  if (route.query.novo) {
+    openCreate()
+  }
 })
 </script>
 

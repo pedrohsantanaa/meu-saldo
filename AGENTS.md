@@ -22,6 +22,7 @@ Frontend (from `frontend/`):
 Environment: `docker compose up --build` runs postgres + backend + frontend. If host port 5432 is taken, use `POSTGRES_PORT=<free-port> docker compose up`. Settings come from env/`.env` (see `.env.example` in each app). API errors use the standard envelope `{"error": {"code", "message", "details"}}` (`backend/app/core/errors.py`) — reuse it in new endpoints.
 - Auth: `POST /api/auth/register|login|logout`, `GET /api/auth/me`. Private routes must depend on `get_current_user` (`backend/app/api/deps.py`) — it is the **only** source of user scoping (data isolation). Tokens are JWT bound to revocable `auth_sessions` rows (logout revokes immediately). Tests run against in-memory SQLite (no Postgres needed).
 - Financial data: `GET/POST/PUT /api/categories` + `PATCH /api/categories/{id}/status`; `GET/POST/PUT/DELETE /api/transactions`. All queries are scoped by the authenticated user (other users' records → 404). Registering a user seeds the 27 default categories as per-user editable copies (`app/services/seed.py`). Expenses require `expense_type` (fixed/variable) and `payment_method` (dinheiro/pix/debito/outra — credit card arrives in Fase 6).
+- Dashboard: `GET /api/dashboard/monthly?month=AAAA-MM` and `/api/dashboard/annual?year=AAAA` (`app/services/dashboard.py`). Formulas follow `spec.md` §7.1: `saídas = fixas + variáveis + investimentos`, `restante = receitas − saídas`; monetary values are quantized to 2 decimals. Monthly and annual views must stay consistent.
 
 ## Documents (all in Portuguese, pt-BR)
 
