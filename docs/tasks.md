@@ -181,37 +181,59 @@ registradas nos documentos de especificação (`spec.md`, `design.md` e
 
 **Objetivo:** preparar a estrutura técnica para o desenvolvimento.
 
--   [ ] **T-009 \[P0\]** Criar o repositório Git do meuSaldo.
+-   [x] **T-009 \[P0\]** Criar o repositório Git do meuSaldo.
     -   Criar estrutura inicial de pastas.
     -   Adicionar `.gitignore`.
     -   Criar `README.md` com visão geral e instruções iniciais.
--   [ ] **T-010 \[P0\]** Inicializar o back-end com Python e FastAPI.
+    -   **Resultado:** estrutura `backend/` + `frontend/` + `docs/`
+        criada; `.gitignore` e `README.md` adicionados (o repositório
+        Git já existia).
+-   [x] **T-010 \[P0\]** Inicializar o back-end com Python e FastAPI.
     -   Criar aplicação principal.
     -   Configurar variáveis de ambiente.
     -   Criar endpoint de verificação de saúde, por exemplo `/health`.
     -   Configurar documentação OpenAPI.
--   [ ] **T-011 \[P0\]** Inicializar o front-end com Vue.js 3.
+    -   **Resultado:** API em `backend/app/main.py` com `/health`
+        validado, OpenAPI em `/docs` e configuração por variáveis de
+        ambiente (`app/core/config.py`, `.env.example`).
+-   [x] **T-011 \[P0\]** Inicializar o front-end com Vue.js 3.
     -   Configurar Vite.
     -   Configurar Tailwind CSS.
     -   Configurar roteamento.
     -   Criar tela inicial e estrutura de layout.
--   [ ] **T-012 \[P0\]** Configurar PostgreSQL.
+    -   **Resultado:** Vue 3 + Vite + Tailwind em `frontend/`; rotas
+        para as 6 seções do menu (AC-077); layout com navegação lateral
+        e adaptada para móvel; build de produção validado.
+-   [x] **T-012 \[P0\]** Configurar PostgreSQL.
     -   Criar banco e usuário de aplicação.
     -   Configurar conexão pelo back-end.
     -   Utilizar variáveis de ambiente para credenciais.
--   [ ] **T-013 \[P0\]** Configurar migrações do banco.
+    -   **Resultado:** PostgreSQL 16 via Docker Compose (banco/usuário
+        por variáveis) e conexão por `DATABASE_URL`; migracoes aplicadas
+        com sucesso no banco real.
+-   [x] **T-013 \[P0\]** Configurar migrações do banco.
     -   Integrar ferramenta de migração, como Alembic.
     -   Criar primeira migração.
     -   Documentar como aplicar e reverter migrações.
--   [ ] **T-014 \[P1\]** Preparar ambiente local com Docker Compose.
+    -   **Resultado:** Alembic integrado em `backend/alembic`; revisão
+        `0001_baseline` aplicada e verificada (`alembic current`);
+        comandos no `README.md`.
+-   [x] **T-014 \[P1\]** Preparar ambiente local com Docker Compose.
     -   Configurar serviços de front-end, back-end e banco de dados,
         conforme necessário.
     -   Configurar volumes e rede interna.
     -   Documentar comandos para subir e encerrar o ambiente.
--   [ ] **T-015 \[P0\]** Configurar padrões de qualidade.
+    -   **Resultado:** `docker-compose.yml` com `db` (healthcheck e
+        volume `pgdata`), `backend` e `frontend`; porta do banco
+        parametrizável via `POSTGRES_PORT`; comandos no `README.md`.
+-   [x] **T-015 \[P0\]** Configurar padrões de qualidade.
     -   Definir formatação e lint para Python e JavaScript.
     -   Configurar tratamento padronizado de erros.
     -   Criar configuração inicial de testes automatizados.
+    -   **Resultado:** Ruff (lint/format) e pytest no back-end (2
+        testes); ESLint + Prettier e Vitest no front-end (2 testes);
+        erros da API com envelope padronizado `{"error": {code, message,
+        details}}` (`backend/app/core/errors.py`).
 
 **Critério de conclusão da fase:** front-end e back-end iniciam
 localmente, conectam ao banco e possuem instruções reproduzíveis.
