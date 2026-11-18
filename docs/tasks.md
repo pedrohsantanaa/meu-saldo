@@ -243,32 +243,56 @@ localmente, conectam ao banco e possuem instruções reproduzíveis.
 **Objetivo:** construir a base visual conforme o protótipo de
 referência.
 
--   [ ] **T-016 \[P0\]** Definir tokens visuais.
+-   [x] **T-016 \[P0\]** Definir tokens visuais.
     -   Cores principais, neutras, positivas, negativas e de atenção.
     -   Tipografia, espaçamentos, bordas, sombras e raios.
     -   Estados de foco, hover, desabilitado e erro.
--   [ ] **T-017 \[P0\]** Criar layout principal da aplicação.
+    -   **Resultado:** tokens em `frontend/tailwind.config.js` (primary,
+        positive, negative e attention com tons claros; tipografia de
+        sistema; sombras card/panel; raio card) e estados de foco,
+        hover, desabilitado e erro em `src/assets/main.css` e nos
+        componentes.
+-   [x] **T-017 \[P0\]** Criar layout principal da aplicação.
     -   Implementar marca e nome `meuSaldo`.
     -   Criar navegação lateral para telas grandes.
     -   Criar navegação compacta para dispositivos móveis.
     -   Reservar área de conteúdo principal.
--   [ ] **T-018 \[P0\]** Criar componentes compartilhados.
+    -   **Resultado:** marca `meuSaldo` (símbolo + nome) nas navegações
+        `SidebarNavigation` e `MobileNavigation`; área de conteúdo
+        principal em `AppLayout`.
+-   [x] **T-018 \[P0\]** Criar componentes compartilhados.
     -   Botões, campos, seletores, modais e tabelas.
     -   Cartões de indicadores.
     -   Mensagens de sucesso e erro.
     -   Estados de carregamento e listas vazias.
     -   Campo monetário com formatação brasileira.
--   [ ] **T-019 \[P1\]** Criar componentes de período.
+    -   **Resultado:** `BaseButton`, `BaseInput`, `BaseSelect`,
+        `BaseModal`, `ConfirmDialog`, `BaseTable`, `BaseMessage`,
+        `LoadingState`, `EmptyState`, `SectionHeader`, `SummaryCard` e
+        `CurrencyInput` (BRL, com testes) em `frontend/src/components`.
+-   [x] **T-019 \[P1\]** Criar componentes de período.
     -   Seletor de mês e ano.
     -   Navegação para mês anterior e próximo.
     -   Seletor de ano.
     -   Alternância entre visão mensal e anual.
--   [ ] **T-020 \[P1\]** Validar responsividade do layout.
+    -   **Resultado:** `MonthSelector` com navegação mês/ano, seletor de
+        ano, botão "Hoje" e alternância mensal/anual; utilitários em
+        `src/utils/period.js`; testes unitários incluídos.
+-   [x] **T-020 \[P1\]** Validar responsividade do layout.
     -   Testar larguras de desktop, tablet e smartphone.
     -   Garantir navegação e formulários utilizáveis em telas pequenas.
+    -   **Resultado:** breakpoints sm/md/lg aplicados (grid de
+        indicadores, navegação compacta, tabelas com rolagem
+        horizontal, formulários em largura total); CSS de produção
+        contém os três breakpoints. Recomenda-se passada manual em
+        dispositivos reais antes da publicação.
 
 **Critério de conclusão da fase:** layout consistente, navegável e
 responsivo, ainda que utilizando dados de demonstração.
+
+**Fase 2 concluída:** layout e componentes em uso na `VisaoGeralPage`
+com dados de demonstração. Verificações: ESLint limpo, 15 testes Vitest
+passando e build de produção OK.
 
 ## 8. Fase 3 --- Banco de dados, autenticação e isolamento
 

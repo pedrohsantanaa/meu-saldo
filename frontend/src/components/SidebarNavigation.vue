@@ -4,7 +4,15 @@ import { navItems } from '../utils/navigation'
 
 <template>
   <nav class="flex h-full flex-col p-4">
-    <RouterLink to="/" class="mb-6 text-xl font-semibold text-primary">meuSaldo</RouterLink>
+    <RouterLink to="/" class="mb-6 flex items-center gap-2">
+      <span
+        class="flex h-8 w-8 items-center justify-center rounded-card bg-primary text-sm font-semibold text-white"
+        aria-hidden="true"
+      >
+        m$
+      </span>
+      <span class="text-xl font-semibold text-neutral-900">meuSaldo</span>
+    </RouterLink>
 
     <ul class="space-y-1">
       <li v-for="item in navItems" :key="item.name">

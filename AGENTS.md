@@ -17,6 +17,7 @@ Backend (from `backend/`; local venv at `backend/.venv`):
 Frontend (from `frontend/`):
 - `npm install` · `npm run dev` (Vite on :5173; proxies `/api` and `/health` to the backend)
 - `npm test` (Vitest) · `npm run lint` (ESLint) · `npm run format` (Prettier) · `npm run build`
+- UI: shared components in `frontend/src/components` (`Base*` primitives; `SummaryCard`/`MonthSelector`/`CurrencyInput`/`EmptyState` per `design.md` §6.2) — reuse them instead of ad-hoc markup; visual tokens live in `frontend/tailwind.config.js`.
 
 Environment: `docker compose up --build` runs postgres + backend + frontend. If host port 5432 is taken, use `POSTGRES_PORT=<free-port> docker compose up`. Settings come from env/`.env` (see `.env.example` in each app). API errors use the standard envelope `{"error": {"code", "message", "details"}}` (`backend/app/core/errors.py`) — reuse it in new endpoints.
 

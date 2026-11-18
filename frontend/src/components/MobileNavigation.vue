@@ -8,10 +8,19 @@ defineEmits(['update:open'])
 <template>
   <div>
     <div class="flex items-center justify-between p-4">
-      <RouterLink to="/" class="text-lg font-semibold text-primary">meuSaldo</RouterLink>
+      <RouterLink to="/" class="flex items-center gap-2">
+        <span
+          class="flex h-8 w-8 items-center justify-center rounded-card bg-primary text-sm font-semibold text-white"
+          aria-hidden="true"
+        >
+          m$
+        </span>
+        <span class="text-lg font-semibold text-neutral-900">meuSaldo</span>
+      </RouterLink>
+
       <button
         type="button"
-        class="rounded-md border border-neutral-200 px-3 py-1.5 text-sm"
+        class="rounded-md border border-neutral-300 px-3 py-1.5 text-sm"
         :aria-expanded="open"
         aria-label="Abrir ou fechar menu"
         @click="$emit('update:open', !open)"
