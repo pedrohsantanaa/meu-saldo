@@ -290,9 +290,16 @@ referência.
 **Critério de conclusão da fase:** layout consistente, navegável e
 responsivo, ainda que utilizando dados de demonstração.
 
-**Fase 2 concluída:** layout e componentes em uso na `VisaoGeralPage`
-com dados de demonstração. Verificações: ESLint limpo, 15 testes Vitest
-passando e build de produção OK.
+**Fase 2 concluída:** layout e componentes em uso com dados de
+demonstração. Verificações: ESLint limpo, 16 testes Vitest passando e
+build de produção OK.
+
+**Alinhamento visual ao protótipo (`docs/interface.png`):** todas as
+telas passaram a seguir o protótipo aprovado (sidebar escura, ações em
+verde, indicadores com ícone, gráficos e dados de demonstração). A
+navegação também segue o protótipo: Dashboard (Visão Mensal e Visão
+Anual), Movimentações, Cartões, Orçamentos, Categorias, Relatórios e
+Configurações.
 
 ## 8. Fase 3 --- Banco de dados, autenticação e isolamento
 

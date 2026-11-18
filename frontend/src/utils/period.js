@@ -7,8 +7,9 @@ export function addYears(date, count) {
 }
 
 export function formatMonthYear(date) {
-  const text = date.toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' })
-  return text.charAt(0).toUpperCase() + text.slice(1)
+  const month = date.toLocaleDateString('pt-BR', { month: 'long' })
+  const capitalized = month.charAt(0).toUpperCase() + month.slice(1)
+  return `${capitalized}/${date.getFullYear()}`
 }
 
 export function formatYear(date) {

@@ -8,13 +8,15 @@ const menuOpen = ref(false)
 </script>
 
 <template>
-  <div class="min-h-screen md:flex">
-    <aside class="hidden w-60 shrink-0 border-r border-neutral-200 bg-white md:block">
-      <SidebarNavigation />
+  <div class="min-h-screen bg-neutral-50 md:flex">
+    <aside class="hidden w-60 shrink-0 md:block">
+      <div class="fixed h-screen w-60">
+        <SidebarNavigation />
+      </div>
     </aside>
 
     <div class="flex min-h-screen flex-1 flex-col">
-      <header class="border-b border-neutral-200 bg-white md:hidden">
+      <header class="md:hidden">
         <MobileNavigation v-model:open="menuOpen" />
       </header>
 

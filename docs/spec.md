@@ -719,14 +719,19 @@ Diretrizes:
 -   Mensagens claras de sucesso, erro e confirmação.
 -   Estados de carregamento e telas vazias bem definidos.
 
-### 8.2. Navegação inicial sugerida
+### 8.2. Navegação inicial (conforme o protótipo)
 
--   Visão geral.
+-   Dashboard: Visão Mensal e Visão Anual.
 -   Movimentações.
 -   Cartões.
 -   Orçamentos.
 -   Categorias.
+-   Relatórios.
 -   Configurações.
+
+A navegação segue o protótipo aprovado (`docs/interface.png`), que
+inclui Relatórios e separa as visões mensal e anual sob o grupo
+Dashboard.
 
 A administração deverá ficar em uma área separada, disponível somente
 para administradores.

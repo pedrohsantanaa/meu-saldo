@@ -1,114 +1,56 @@
 <script setup>
 import { computed } from 'vue'
 
-import { addMonths, addYears, formatMonthYear, formatYear, isSameMonth } from '../utils/period'
+import { addMonths, formatMonthYear, isSameMonth } from '../utils/period'
 import BaseButton from './BaseButton.vue'
-import BaseSelect from './BaseSelect.vue'
 
 const props = defineProps({
   modelValue: { type: Date, required: true },
-  mode: {
-    type: String,
-    default: 'mensal',
-    validator: (value) => ['mensal', 'anual'].includes(value),
-  },
 })
 
-const emit = defineEmits(['update:modelValue', 'update:mode'])
+const emit = defineEmits(['update:modelValue'])
 
-const isMensal = computed(() => props.mode === 'mensal')
-
-const label = computed(() =>
-  isMensal.value ? formatMonthYear(props.modelValue) : formatYear(props.modelValue)
-)
-
-const yearOptions = computed(() => {
-  const base = props.modelValue.getFullYear()
-  return Array.from({ length: 21 }, (_, index) => {
-    const year = base - 10 + index
-    return { value: String(year), label: String(year) }
-  })
-})
-
+const label = computed(() => formatMonthYear(props.modelValue))
 const showToday = computed(() => !isSameMonth(props.modelValue, new Date()))
 
 function go(delta) {
-  const next = isMensal.value
-    ? addMonths(props.modelValue, delta)
-    : addYears(props.modelValue, delta)
-  emit('update:modelValue', next)
+  emit('update:modelValue', addMonths(props.modelValue, delta))
 }
 
 function goToday() {
   const today = new Date()
   emit('update:modelValue', new Date(today.getFullYear(), today.getMonth(), 1))
 }
-
-function onYearChange(year) {
-  const month = isMensal.value ? props.modelValue.getMonth() : 0
-  emit('update:modelValue', new Date(Number(year), month, 1))
-}
-
-function setMode(mode) {
-  emit('update:mode', mode)
-}
 </script>
 
 <template>
-  <div class="flex flex-wrap items-center gap-2">
-    <div class="flex items-center gap-1">
-      <BaseButton
-        variant="secondary"
-        size="sm"
-        :aria-label="isMensal ? 'Mês anterior' : 'Ano anterior'"
+  <div class="flex items-center gap-2">
+    <div
+      class="flex items-center gap-1 rounded-card border border-neutral-200 bg-white px-1 py-1 shadow-card"
+    >
+      <button
+        type="button"
+        class="rounded-md px-2 py-1 text-neutral-500 hover:bg-neutral-100"
+        aria-label="Mês anterior"
         @click="go(-1)"
       >
         &lsaquo;
-      </BaseButton>
+      </button>
 
-      <p class="min-w-[10rem] text-center text-lg font-semibold" aria-live="polite">
+      <p class="min-w-[9rem] text-center text-sm font-semibold text-neutral-900" aria-live="polite">
         {{ label }}
       </p>
 
-      <BaseButton
-        variant="secondary"
-        size="sm"
-        :aria-label="isMensal ? 'Próximo mês' : 'Próximo ano'"
+      <button
+        type="button"
+        class="rounded-md px-2 py-1 text-neutral-500 hover:bg-neutral-100"
+        aria-label="Próximo mês"
         @click="go(1)"
       >
         &rsaquo;
-      </BaseButton>
-    </div>
-
-    <BaseButton v-if="showToday" variant="ghost" size="sm" @click="goToday">Hoje</BaseButton>
-
-    <BaseSelect
-      :model-value="String(modelValue.getFullYear())"
-      :options="yearOptions"
-      class="w-28"
-      aria-label="Selecionar ano"
-      @update:model-value="onYearChange"
-    />
-
-    <div class="ml-auto flex items-center rounded-md border border-neutral-300 bg-white p-0.5">
-      <button
-        type="button"
-        class="rounded px-3 py-1.5 text-sm font-medium transition-colors"
-        :class="isMensal ? 'bg-primary text-white' : 'text-neutral-600 hover:bg-neutral-100'"
-        :aria-pressed="isMensal"
-        @click="setMode('mensal')"
-      >
-        Mensal
-      </button>
-      <button
-        type="button"
-        class="rounded px-3 py-1.5 text-sm font-medium transition-colors"
-        :class="!isMensal ? 'bg-primary text-white' : 'text-neutral-600 hover:bg-neutral-100'"
-        :aria-pressed="!isMensal"
-        @click="setMode('anual')"
-      >
-        Anual
       </button>
     </div>
+
+    <BaseButton v-if="showToday" variant="secondary" size="sm" @click="goToday">Hoje</BaseButton>
   </div>
 </template>

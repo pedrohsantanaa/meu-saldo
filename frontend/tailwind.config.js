@@ -1,9 +1,12 @@
-/** Tokens visuais do meuSaldo (T-016).
+/** Tokens visuais do meuSaldo, alinhados ao protótipo aprovado
+ * (`docs/interface.png`).
  *
- * Direção visual: `design.md` §6.1 — fundo neutro claro, superfícies
- * brancas, uma cor principal para ações, verde para positivos, vermelho
- * para negativos e âmbar para atenção. O significado nunca deve depender
- * apenas da cor (usar rótulos/ícones/textos de apoio).
+ * - Sidebar azul-marinho escuro com item ativo azul.
+ * - Verde é a cor das ações primárias ("+ Nova Movimentação").
+ * - Roxo para investimentos, laranja para despesas variáveis,
+ *   vermelho para despesas, azul para despesas fixas.
+ * - O significado nunca deve depender apenas da cor (usar rótulos/
+ *   ícones/textos de apoio).
  */
 /** @type {import('tailwindcss').Config} */
 export default {
@@ -11,10 +14,20 @@ export default {
   theme: {
     extend: {
       colors: {
+        sidebar: {
+          DEFAULT: '#1e2a44',
+          hover: '#2a3a5c',
+          text: '#cbd5e1',
+        },
         primary: {
           DEFAULT: '#2563eb',
           dark: '#1d4ed8',
           light: '#dbeafe',
+        },
+        action: {
+          DEFAULT: '#16a34a',
+          dark: '#15803d',
+          light: '#dcfce7',
         },
         positive: {
           DEFAULT: '#16a34a',
@@ -27,6 +40,14 @@ export default {
         attention: {
           DEFAULT: '#d97706',
           light: '#fef3c7',
+        },
+        variable: {
+          DEFAULT: '#f97316',
+          light: '#ffedd5',
+        },
+        investment: {
+          DEFAULT: '#8b5cf6',
+          light: '#ede9fe',
         },
       },
       fontFamily: {

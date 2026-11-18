@@ -738,9 +738,9 @@ aprovação.
 
 **Dado** que o usuário está autenticado,\
 **quando** visualizar a navegação principal,\
-**então** deverá encontrar acesso às seções Visão geral, Movimentações,
-Cartões, Orçamentos, Categorias e Configurações, conforme o escopo
-implementado.
+**então** deverá encontrar acesso às seções Dashboard (Visão Mensal e
+Visão Anual), Movimentações, Cartões, Orçamentos, Categorias, Relatórios
+e Configurações, conforme o protótipo aprovado (`docs/interface.png`).
 
 ### AC-078 --- Identidade visual \[P1\]
 

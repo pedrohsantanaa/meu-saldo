@@ -17,7 +17,7 @@ Backend (from `backend/`; local venv at `backend/.venv`):
 Frontend (from `frontend/`):
 - `npm install` · `npm run dev` (Vite on :5173; proxies `/api` and `/health` to the backend)
 - `npm test` (Vitest) · `npm run lint` (ESLint) · `npm run format` (Prettier) · `npm run build`
-- UI: shared components in `frontend/src/components` (`Base*` primitives; `SummaryCard`/`MonthSelector`/`CurrencyInput`/`EmptyState` per `design.md` §6.2) — reuse them instead of ad-hoc markup; visual tokens live in `frontend/tailwind.config.js`.
+- UI: shared components in `frontend/src/components` (`Base*` primitives; `SummaryCard`/`MonthSelector`/`CurrencyInput`/`EmptyState` per `design.md` §6.2) — reuse them instead of ad-hoc markup; visual tokens live in `frontend/tailwind.config.js`; charts via `chart.js` wrappers (`ChartDonut`/`ChartBars`/`ChartArea`), icons from `@heroicons/vue`.
 
 Environment: `docker compose up --build` runs postgres + backend + frontend. If host port 5432 is taken, use `POSTGRES_PORT=<free-port> docker compose up`. Settings come from env/`.env` (see `.env.example` in each app). API errors use the standard envelope `{"error": {"code", "message", "details"}}` (`backend/app/core/errors.py`) — reuse it in new endpoints.
 
@@ -59,6 +59,7 @@ Keep doc edits in Portuguese and in character style consistent with the existing
 - Task markers: `[ ]` pending, `[x]` done, `[!]` blocked; priorities **P0** (MVP-essential) / P1 / P2. A task is done only when code is implemented, reviewed and tested (`tasks.md` §3).
 - Acceptance items are `AC-xxx [P0|P1|Condicional]` scenarios; a feature is accepted only when its applicable ACs pass and no known failures affect calculations, privacy, or data integrity (`acceptance.md` §1).
 - Source of functional truth is the product owner's spreadsheets: the app must preserve their logic (income sources, fixed/variable expenses, investments counted in "restante", per-card budgets) — `design.md` §1 and `docs/interface.png`.
+- **Visual source of truth is `docs/interface.png`** (approved prototype): dark navy sidebar with blue active states, green primary actions, purple=investments, orange=variable expenses, icon badges on indicator cards. Navigation follows the prototype: Dashboard (Visão Mensal `/` + Visão Anual `/anual`), Movimentações, Cartões, Orçamentos, Categorias, Relatórios, Configurações (`spec.md` §8.2, AC-077 updated). Demo screens reuse the prototype's sample data.
 - "Restante" is the result of registered entries (`receitas − saídas`, where `saídas = fixas + variáveis + investimentos`), **not** a real bank balance (`design.md` §11.1).
 
 ## Windows gotcha

@@ -15,8 +15,8 @@ describe('period', () => {
     expect(date.getMonth()).toBe(5)
   })
 
-  it('formatMonthYear formata em português', () => {
-    expect(formatMonthYear(new Date(2026, 10, 1))).toBe('Novembro de 2026')
+  it('formatMonthYear formata como no protótipo (Mês/AAAA)', () => {
+    expect(formatMonthYear(new Date(2026, 10, 1))).toBe('Novembro/2026')
   })
 
   it('formatYear retorna o ano', () => {

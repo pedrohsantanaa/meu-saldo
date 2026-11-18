@@ -1,38 +1,56 @@
 import { createRouter, createWebHistory } from 'vue-router'
 
-import VisaoGeralPage from '../pages/VisaoGeralPage.vue'
+import CartoesPage from '../pages/CartoesPage.vue'
+import CategoriasPage from '../pages/CategoriasPage.vue'
+import MovimentacoesPage from '../pages/MovimentacoesPage.vue'
+import OrcamentosPage from '../pages/OrcamentosPage.vue'
 import PlaceholderPage from '../pages/PlaceholderPage.vue'
+import RelatoriosPage from '../pages/RelatoriosPage.vue'
+import VisaoAnualPage from '../pages/VisaoAnualPage.vue'
+import VisaoMensalPage from '../pages/VisaoMensalPage.vue'
 
 const routes = [
   {
     path: '/',
-    name: 'visao-geral',
-    component: VisaoGeralPage,
-    meta: { title: 'Visão geral' },
+    name: 'visao-mensal',
+    component: VisaoMensalPage,
+    meta: { title: 'Visão Mensal' },
+  },
+  {
+    path: '/anual',
+    name: 'visao-anual',
+    component: VisaoAnualPage,
+    meta: { title: 'Visão Anual' },
   },
   {
     path: '/movimentacoes',
     name: 'movimentacoes',
-    component: PlaceholderPage,
+    component: MovimentacoesPage,
     meta: { title: 'Movimentações' },
   },
   {
     path: '/cartoes',
     name: 'cartoes',
-    component: PlaceholderPage,
+    component: CartoesPage,
     meta: { title: 'Cartões' },
   },
   {
     path: '/orcamentos',
     name: 'orcamentos',
-    component: PlaceholderPage,
+    component: OrcamentosPage,
     meta: { title: 'Orçamentos' },
   },
   {
     path: '/categorias',
     name: 'categorias',
-    component: PlaceholderPage,
+    component: CategoriasPage,
     meta: { title: 'Categorias' },
+  },
+  {
+    path: '/relatorios',
+    name: 'relatorios',
+    component: RelatoriosPage,
+    meta: { title: 'Relatórios' },
   },
   {
     path: '/configuracoes',
