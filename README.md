@@ -38,11 +38,10 @@ docker compose up --build
 ```
 
 - Front-end: <http://localhost:5173>
-- Back-end (Swagger): <http://localhost:8000/docs>
-- Saúde da API: <http://localhost:8000/health>
-- PostgreSQL: `localhost:5432` (banco/usuário/senha `meusaldo` por padrão; se a
-  porta 5432 estiver ocupada, use `POSTGRES_PORT=5433 docker compose up --build`
-  e ajuste `DATABASE_URL` na execução manual)
+- Back-end (Swagger): <http://localhost:38000/docs>
+- Saúde da API: <http://localhost:38000/health>
+- PostgreSQL: `localhost:15432` (banco/usuário/senha `meusaldo` por padrão;
+  portas configuráveis no `docker-compose.yml`)
 
 Ao encerrar: `docker compose down` (use `docker compose down -v` para remover os dados).
 

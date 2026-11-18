@@ -140,8 +140,8 @@ sistema.
 
 -   O e-mail deverá ser obrigatório e possuir formato válido.
 -   O e-mail deverá ser único no sistema.
--   A senha deverá atender a uma política mínima de segurança, a ser
-    definida na implementação.
+-   A senha deverá atender a uma política mínima de segurança: mínimo de
+    8 caracteres (definida na implementação, T-022).
 -   A senha nunca deverá ser armazenada em texto puro.
 -   A aplicação deverá apresentar mensagens claras em caso de dados
     inválidos ou e-mail já cadastrado.
@@ -178,6 +178,11 @@ sistema.
 -   O logout deverá invalidar ou encerrar a sessão conforme o mecanismo
     adotado.
 -   Tokens e credenciais deverão ser tratados com segurança.
+
+**Mecanismo definido (T-023):** tokens JWT com expiração configurável
+(padrão de 60 minutos), vinculados a sessões revogáveis no servidor; o
+logout revoga a sessão e invalida o acesso imediatamente. As senhas são
+armazenadas com hash bcrypt.
 
 **Critérios de aceitação:**
 

@@ -1,5 +1,5 @@
-from sqlalchemy.orm import DeclarativeBase
+from app.models.auth_session import AuthSession
+from app.models.base import Base
+from app.models.user import User
 
-
-class Base(DeclarativeBase):
-    """Base declarativa compartilhada pelos modelos e pelo Alembic."""
+__all__ = ["AuthSession", "Base", "User"]

@@ -20,6 +20,7 @@ Frontend (from `frontend/`):
 - UI: shared components in `frontend/src/components` (`Base*` primitives; `SummaryCard`/`MonthSelector`/`CurrencyInput`/`EmptyState` per `design.md` §6.2) — reuse them instead of ad-hoc markup; visual tokens live in `frontend/tailwind.config.js`; charts via `chart.js` wrappers (`ChartDonut`/`ChartBars`/`ChartArea`), icons from `@heroicons/vue`.
 
 Environment: `docker compose up --build` runs postgres + backend + frontend. If host port 5432 is taken, use `POSTGRES_PORT=<free-port> docker compose up`. Settings come from env/`.env` (see `.env.example` in each app). API errors use the standard envelope `{"error": {"code", "message", "details"}}` (`backend/app/core/errors.py`) — reuse it in new endpoints.
+- Auth: `POST /api/auth/register|login|logout`, `GET /api/auth/me`. Private routes must depend on `get_current_user` (`backend/app/api/deps.py`) — it is the **only** source of user scoping (data isolation). Tokens are JWT bound to revocable `auth_sessions` rows (logout revokes immediately). Tests run against in-memory SQLite (no Postgres needed).
 
 ## Documents (all in Portuguese, pt-BR)
 

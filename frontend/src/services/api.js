@@ -1,4 +1,5 @@
 const BASE_URL = import.meta.env.VITE_API_BASE_URL || '/api'
+const TOKEN_KEY = 'meusaldo.token'
 
 export class ApiError extends Error {
   constructor(code, message, status, details = null) {
@@ -11,10 +12,11 @@ export class ApiError extends Error {
 }
 
 async function request(path, options = {}) {
-  const response = await fetch(`${BASE_URL}${path}`, {
-    headers: { 'Content-Type': 'application/json', ...options.headers },
-    ...options,
-  })
+  const token = localStorage.getItem(TOKEN_KEY)
+  const headers = { 'Content-Type': 'application/json', ...options.headers }
+  if (token) headers.Authorization = `Bearer ${token}`
+
+  const response = await fetch(`${BASE_URL}${path}`, { ...options, headers })
 
   if (!response.ok) {
     let payload = null

@@ -306,32 +306,59 @@ Configurações.
 **Objetivo:** implementar a base de dados e o acesso seguro dos
 usuários.
 
--   [ ] **T-021 \[P0\]** Implementar entidade e migração de usuário.
+-   [x] **T-021 \[P0\]** Implementar entidade e migração de usuário.
     -   Nome, e-mail, hash da senha e datas de auditoria.
     -   Garantir unicidade do e-mail.
--   [ ] **T-022 \[P0\]** Implementar cadastro de usuário.
+    -   **Resultado:** `User` em `backend/app/models/user.py` e
+        `AuthSession` (sessão revogável) em `app/models/auth_session.py`;
+        migração `0002_user_sessions` aplicada e verificada no banco
+        real; e-mail com índice único.
+-   [x] **T-022 \[P0\]** Implementar cadastro de usuário.
     -   Validar campos.
     -   Validar e-mail único.
     -   Armazenar senha com hash seguro.
--   [ ] **T-023 \[P0\]** Implementar login e logout.
+    -   **Resultado:** `POST /api/auth/register` (`app/services/auth.py`):
+        validação com Pydantic (senha com mínimo de 8 caracteres), e-mail
+        único (409 com envelope padrão) e hash bcrypt. Ver testes em
+        `tests/test_auth.py`.
+-   [x] **T-023 \[P0\]** Implementar login e logout.
     -   Validar credenciais.
     -   Configurar mecanismo de sessão ou token.
     -   Definir armazenamento e expiração de credenciais.
     -   Implementar encerramento da sessão.
--   [ ] **T-024 \[P0\]** Proteger rotas do front-end e endpoints
+    -   **Resultado:** `POST /api/auth/login` emite JWT (expiração
+        configurável, padrão 60 min) vinculado a uma sessão revogável
+        (`auth_sessions`); logout revoga a sessão imediatamente (AC-008
+        verificado ponta a ponta); mensagens genéricas de credenciais
+        (AC-006).
+-   [x] **T-024 \[P0\]** Proteger rotas do front-end e endpoints
     privados.
     -   Redirecionar usuários não autenticados.
     -   Validar autorização no back-end.
--   [ ] **T-025 \[P0\]** Implementar isolamento dos dados por usuário.
+    -   **Resultado:** dependência `get_current_user`
+        (`backend/app/api/deps.py`) exigida nas rotas privadas (401 com
+        envelope padrão); guarda de rotas no vue-router redireciona para
+        `/login` com retorno à rota original; páginas `LoginPage` e
+        `RegisterPage` na identidade visual; token enviado pelo
+        `services/api.js`.
+-   [x] **T-025 \[P0\]** Implementar isolamento dos dados por usuário.
     -   Aplicar o usuário autenticado nas consultas.
     -   Impedir acesso a registros de outro usuário por alteração de
         IDs.
     -   Criar testes de autorização.
--   [ ] **T-026 \[P1\]** Implementar recuperação de senha, caso aprovada
+    -   **Resultado:** `get_current_user` é a única fonte de escopo de
+        usuário para as rotas privadas (padrão para as próximas fases);
+        testes de autorização em `tests/test_auth.py` (token inválido,
+        sem token, logout revoga sessão, isolamento entre usuários).
+        A validação de AC-009 com recursos de negócio será ampliada nas
+        fases 4 a 7.
+-   [!] **T-026 \[P1\]** Implementar recuperação de senha, caso aprovada
     para o MVP.
     -   Definir envio de e-mail.
     -   Criar fluxo seguro de redefinição.
     -   Não revelar se determinado e-mail está cadastrado.
+    -   **Bloqueada por DP-08:** a decisão sobre recuperação de senha por
+        e-mail no MVP ainda não foi confirmada.
 
 **Critério de conclusão da fase:** usuário consegue criar conta e
 acessar áreas privadas; testes comprovam isolamento dos dados.

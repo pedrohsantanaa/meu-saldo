@@ -1,15 +1,26 @@
 <script setup>
 import { computed, ref } from 'vue'
-import { useRoute } from 'vue-router'
+import { useRouter, useRoute } from 'vue-router'
+import { ArrowRightStartOnRectangleIcon } from '@heroicons/vue/24/outline'
 
 import { navItems } from '../utils/navigation'
+import { useAuthStore } from '../stores/auth'
 
 const route = useRoute()
+const router = useRouter()
+const auth = useAuthStore()
 const dashboardOpen = ref(true)
+
+const userName = computed(() => auth.user?.name || 'Minha conta')
 
 const dashboardActive = computed(() =>
   navItems.find((item) => item.name === 'dashboard')?.children?.some((child) => child.name === route.name)
 )
+
+async function onLogout() {
+  await auth.logout()
+  router.push({ name: 'login' })
+}
 </script>
 
 <template>
@@ -80,12 +91,20 @@ const dashboardActive = computed(() =>
         class="flex h-9 w-9 items-center justify-center rounded-full bg-primary text-sm font-semibold text-white"
         aria-hidden="true"
       >
-        P
+        {{ userName.charAt(0).toUpperCase() }}
       </span>
       <div class="min-w-0 flex-1">
-        <p class="truncate text-sm font-medium text-white">Pedro Henrique</p>
+        <p class="truncate text-sm font-medium text-white">{{ userName }}</p>
         <p class="text-xs text-sidebar-text">Minha conta</p>
       </div>
+      <button
+        type="button"
+        class="rounded-md p-1.5 text-sidebar-text hover:bg-sidebar-hover hover:text-white"
+        aria-label="Sair"
+        @click="onLogout"
+      >
+        <ArrowRightStartOnRectangleIcon class="h-5 w-5" />
+      </button>
     </div>
   </nav>
 </template>

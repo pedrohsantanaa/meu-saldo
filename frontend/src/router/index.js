@@ -2,14 +2,29 @@ import { createRouter, createWebHistory } from 'vue-router'
 
 import CartoesPage from '../pages/CartoesPage.vue'
 import CategoriasPage from '../pages/CategoriasPage.vue'
+import LoginPage from '../pages/LoginPage.vue'
 import MovimentacoesPage from '../pages/MovimentacoesPage.vue'
 import OrcamentosPage from '../pages/OrcamentosPage.vue'
 import PlaceholderPage from '../pages/PlaceholderPage.vue'
+import RegisterPage from '../pages/RegisterPage.vue'
 import RelatoriosPage from '../pages/RelatoriosPage.vue'
 import VisaoAnualPage from '../pages/VisaoAnualPage.vue'
 import VisaoMensalPage from '../pages/VisaoMensalPage.vue'
+import { useAuthStore } from '../stores/auth'
 
 const routes = [
+  {
+    path: '/login',
+    name: 'login',
+    component: LoginPage,
+    meta: { title: 'Entrar', public: true },
+  },
+  {
+    path: '/registro',
+    name: 'registro',
+    component: RegisterPage,
+    meta: { title: 'Criar conta', public: true },
+  },
   {
     path: '/',
     name: 'visao-mensal',
@@ -67,6 +82,22 @@ const routes = [
 const router = createRouter({
   history: createWebHistory(),
   routes,
+})
+
+router.beforeEach((to) => {
+  const auth = useAuthStore()
+
+  // T-024: rotas privadas exigem autenticação; usuários não autenticados
+  // são redirecionados para o login.
+  if (!to.meta.public && !auth.isAuthenticated) {
+    return { name: 'login', query: { redirect: to.fullPath } }
+  }
+
+  if (to.name === 'login' && auth.isAuthenticated) {
+    return { name: 'visao-mensal' }
+  }
+
+  return true
 })
 
 router.afterEach((to) => {
