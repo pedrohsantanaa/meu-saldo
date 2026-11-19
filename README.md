@@ -74,7 +74,11 @@ npm run dev
 
 ## Migrações do banco (Alembic)
 
-Executam a partir da pasta `backend/`, lendo `DATABASE_URL` do ambiente ou de `.env`:
+No ambiente Docker as migrações são aplicadas automaticamente no start
+do backend (`alembic upgrade head` antes do uvicorn), então o schema
+sempre acompanha o código. Para execução manual, a partir da pasta
+`backend/`, lendo `DATABASE_URL` do ambiente ou de `.env` (ou via
+`docker compose exec backend alembic ...`):
 
 ```bash
 alembic upgrade head      # aplica todas as migrações
@@ -82,8 +86,10 @@ alembic downgrade base    # reverte tudo
 alembic revision -m "descricao"   # cria uma nova migração
 ```
 
-A primeira revisão (`0001_baseline`) é intencionalmente vazia; as entidades
-serão adicionadas nas próximas fases do plano (`docs/tasks.md`).
+A primeira revisão (`0001_baseline`) é intencionalmente vazia; as
+entidades do MVP estão nas revisões `0002` a `0007` (usuários/sessões,
+recuperação de senha, categorias/movimentações, cartões, faturas/compras
+e orçamentos).
 
 ## Qualidade e testes
 

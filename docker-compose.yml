@@ -27,7 +27,9 @@ services:
     depends_on:
       db:
         condition: service_healthy
-    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+    # As migrações rodam a cada start para que o schema acompanhe o
+    # código (T-070); manualmente: docker compose exec backend alembic upgrade head
+    command: sh -c "alembic upgrade head && uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload"
 
   frontend:
     build: ./frontend
