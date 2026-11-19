@@ -5,7 +5,10 @@ import SectionHeader from '../components/SectionHeader.vue'
 
 <template>
   <section>
-    <SectionHeader title="Relatórios" description="Análises detalhadas do seu histórico financeiro." />
+    <SectionHeader
+      title="Relatórios"
+      description="Análises detalhadas do seu histórico financeiro."
+    />
 
     <EmptyState
       title="Relatórios em construção"

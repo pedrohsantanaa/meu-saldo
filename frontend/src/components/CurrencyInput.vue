@@ -25,7 +25,7 @@ watch(
   () => props.modelValue,
   (value) => {
     if (!focused.value) display.value = formatCurrency(value)
-  }
+  },
 )
 
 function onInput(event) {

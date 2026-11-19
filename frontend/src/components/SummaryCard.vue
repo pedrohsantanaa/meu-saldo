@@ -9,14 +9,15 @@ const props = defineProps({
   tone: {
     type: String,
     default: 'neutral',
-    validator: (value) => ['neutral', 'positive', 'negative', 'investment', 'variable'].includes(value),
+    validator: (value) =>
+      ['neutral', 'positive', 'negative', 'investment', 'variable'].includes(value),
   },
   icon: { type: [Object, Function], default: null },
   hint: { type: String, default: '' },
 })
 
 const displayValue = computed(() =>
-  typeof props.value === 'number' ? formatCurrency(props.value) : props.value
+  typeof props.value === 'number' ? formatCurrency(props.value) : props.value,
 )
 
 const tones = {
@@ -29,7 +30,9 @@ const tones = {
 </script>
 
 <template>
-  <div class="flex items-center gap-3 rounded-card border border-neutral-200 bg-white p-4 shadow-card">
+  <div
+    class="flex items-center gap-3 rounded-card border border-neutral-200 bg-white p-4 shadow-card"
+  >
     <span
       class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full"
       :class="tones[tone].badge"

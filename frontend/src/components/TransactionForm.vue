@@ -59,13 +59,13 @@ watch(
       notes: value.notes ?? '',
     })
   },
-  { immediate: true }
+  { immediate: true },
 )
 
 const categoryOptions = computed(() =>
   props.categories
     .filter((category) => category.is_active && category.group_type === form.type)
-    .map((category) => ({ value: String(category.id), label: category.name }))
+    .map((category) => ({ value: String(category.id), label: category.name })),
 )
 
 const isExpense = computed(() => form.type === 'expense')
@@ -75,7 +75,7 @@ watch(
   () => {
     const visible = categoryOptions.value.some((option) => option.value === form.category_id)
     if (!visible) form.category_id = ''
-  }
+  },
 )
 
 function onSubmit() {
@@ -94,11 +94,7 @@ function onSubmit() {
 
 <template>
   <form class="space-y-4" @submit.prevent="onSubmit">
-    <BaseSelect
-      v-model="form.type"
-      label="Tipo"
-      :options="typeOptions"
-    />
+    <BaseSelect v-model="form.type" label="Tipo" :options="typeOptions" />
 
     <BaseInput
       v-model="form.description"
@@ -109,12 +105,7 @@ function onSubmit() {
 
     <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
       <CurrencyInput v-model="form.amount" label="Valor" />
-      <BaseInput
-        v-model="form.transaction_date"
-        label="Data"
-        type="date"
-        required
-      />
+      <BaseInput v-model="form.transaction_date" label="Data" type="date" required />
     </div>
 
     <BaseSelect
@@ -126,11 +117,7 @@ function onSubmit() {
     />
 
     <div v-if="isExpense" class="grid grid-cols-1 gap-4 sm:grid-cols-2">
-      <BaseSelect
-        v-model="form.expense_type"
-        label="Classificação"
-        :options="expenseTypeOptions"
-      />
+      <BaseSelect v-model="form.expense_type" label="Classificação" :options="expenseTypeOptions" />
       <BaseSelect
         v-model="form.payment_method"
         label="Forma de pagamento"
@@ -149,9 +136,7 @@ function onSubmit() {
     </p>
 
     <div class="flex justify-end gap-2">
-      <BaseButton variant="secondary" type="button" @click="emit('cancel')">
-        Cancelar
-      </BaseButton>
+      <BaseButton variant="secondary" type="button" @click="emit('cancel')"> Cancelar </BaseButton>
       <BaseButton type="submit" :loading="loading">Salvar</BaseButton>
     </div>
   </form>

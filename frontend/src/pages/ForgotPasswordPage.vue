@@ -37,8 +37,7 @@ async function onSubmit() {
         class="rounded-md bg-positive-light px-3 py-2 text-sm text-positive"
         role="status"
       >
-        Se o e-mail estiver cadastrado, você receberá as instruções de
-        redefinição.
+        Se o e-mail estiver cadastrado, você receberá as instruções de redefinição.
       </div>
 
       <form v-else class="space-y-4" @submit.prevent="onSubmit">
@@ -50,13 +49,15 @@ async function onSubmit() {
           required
         />
 
-        <p v-if="error" role="alert" class="rounded-md bg-negative-light px-3 py-2 text-sm text-negative">
+        <p
+          v-if="error"
+          role="alert"
+          class="rounded-md bg-negative-light px-3 py-2 text-sm text-negative"
+        >
           {{ error }}
         </p>
 
-        <BaseButton type="submit" class="w-full" :loading="loading">
-          Enviar instruções
-        </BaseButton>
+        <BaseButton type="submit" class="w-full" :loading="loading"> Enviar instruções </BaseButton>
       </form>
 
       <p class="mt-4 text-center text-sm text-neutral-500">

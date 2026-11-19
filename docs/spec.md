@@ -525,6 +525,12 @@ condicional).
 -   A primeira fatura de um cartão começa na data de cadastro do cartão
     e vai até o dia anterior ao primeiro fechamento posterior ao
     cadastro; a partir daí seguem-se os ciclos normais (AC-105).
+-   O vencimento é a primeira ocorrência do dia de vencimento
+    estritamente posterior ao fechamento do ciclo (regra do vencimento,
+    T-048).
+-   A atribuição da compra à fatura é fixada no momento do registro da
+    compra (snapshot): alterar os dias de fechamento ou vencimento do
+    cartão não move compras já registradas (T-047/T-049).
 
 ### 6.11. Limite do cartão
 

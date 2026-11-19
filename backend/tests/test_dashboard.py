@@ -1,4 +1,3 @@
-
 from .test_auth import auth_headers, login, register
 
 
@@ -188,3 +187,141 @@ def test_dashboard_e_isolado_por_usuario(client):
     assert summary_b["total_income"] == "0.00"
     assert summary_b["remaining"] == "0.00"
     assert summary_b["recent_transactions"] == []
+
+
+def setup_card_purchases(client, headers, db_session_factory):
+    """Cartão (fechamento 28, vencimento 10) com duas compras em ciclos
+    diferentes: R$ 150,00 em 10/11 (fatura de dezembro) e R$ 80,00 em
+    29/11 (fatura de janeiro) — exemplos 1 e 3 de `spec.md` §7.4."""
+    from datetime import datetime
+
+    from .test_cards import backdate_card, create_card
+
+    card = create_card(client, headers, credit_limit="5000.00")
+    backdate_card(db_session_factory, card["id"], datetime(2026, 1, 15))
+    client.post(
+        f"/api/cards/{card['id']}/purchases",
+        json={
+            "description": "Mercado",
+            "total_amount": "150.00",
+            "purchase_date": "2026-11-10",
+            "category_id": category_id(client, headers, "Alimentação"),
+        },
+        headers=headers,
+    )
+    client.post(
+        f"/api/cards/{card['id']}/purchases",
+        json={
+            "description": "Lanche",
+            "total_amount": "80.00",
+            "purchase_date": "2026-11-29",
+            "category_id": category_id(client, headers, "Alimentação"),
+        },
+        headers=headers,
+    )
+    return card
+
+
+def test_fatura_entra_como_despesa_variavel_do_mes_do_vencimento(
+    client, db_session_factory
+):
+    headers = auth_client(client)
+    setup_card_purchases(client, headers, db_session_factory)
+
+    december = client.get(
+        "/api/dashboard/monthly", params={"month": "2026-12"}, headers=headers
+    ).json()
+    january = client.get(
+        "/api/dashboard/monthly", params={"month": "2027-01"}, headers=headers
+    ).json()
+
+    # AC-101: a compra conta no mês do vencimento da fatura.
+    assert december["card_purchases_total"] == "150.00"
+    assert january["card_purchases_total"] == "80.00"
+
+
+def test_sem_dupla_contagem_entre_compra_e_fatura(client, db_session_factory):
+    headers = auth_client(client)
+    setup_card_purchases(client, headers, db_session_factory)
+    add(client, headers, "income", "Salário", "Salário", "1000.00", "2026-12-01")
+    add(
+        client,
+        headers,
+        "expense",
+        "Mercado",
+        "Alimentação",
+        "300.00",
+        "2026-12-15",
+    )
+
+    summary = client.get(
+        "/api/dashboard/monthly", params={"month": "2026-12"}, headers=headers
+    ).json()
+
+    # AC-059: a fatura (R$ 150,00) entra uma única vez nas variáveis
+    # (R$ 300,00 comuns + R$ 150,00 da fatura).
+    assert summary["card_purchases_total"] == "150.00"
+    assert summary["total_variable_expenses"] == "450.00"
+    assert summary["total_outflows"] == "450.00"
+    assert summary["remaining"] == "550.00"
+    assert summary["variable_expense_items"] == [
+        {"name": "Alimentação", "total": "300.00"},
+        {"name": "Fatura Nubank", "total": "150.00"},
+    ]
+
+
+def test_pagamento_da_fatura_nao_altera_o_resumo(client, db_session_factory):
+    headers = auth_client(client)
+    card = setup_card_purchases(client, headers, db_session_factory)
+
+    invoices = client.get(f"/api/cards/{card['id']}/invoices", headers=headers).json()
+    december_invoice = next(
+        item for item in invoices if item["reference_month"] == "2026-12-01"
+    )
+    client.post(
+        f"/api/cards/{card['id']}/invoices/{december_invoice['id']}/payments",
+        json={"amount": "150.00", "paid_at": "2026-12-10"},
+        headers=headers,
+    )
+
+    summary = client.get(
+        "/api/dashboard/monthly", params={"month": "2026-12"}, headers=headers
+    ).json()
+
+    # AC-060: o pagamento é liquidação e não muda receitas, despesas,
+    # saídas nem restante.
+    assert summary["card_purchases_total"] == "150.00"
+    assert summary["total_variable_expenses"] == "150.00"
+    assert summary["total_outflows"] == "150.00"
+    assert summary["remaining"] == "-150.00"
+
+
+def test_consistencia_mensal_e_anual_com_faturas(client, db_session_factory):
+    headers = auth_client(client)
+    setup_card_purchases(client, headers, db_session_factory)
+
+    monthly = client.get(
+        "/api/dashboard/monthly", params={"month": "2026-12"}, headers=headers
+    ).json()
+    annual = client.get(
+        "/api/dashboard/annual", params={"year": 2026}, headers=headers
+    ).json()
+    december = annual["months"][11]
+
+    # Mesma política nas duas visões: fatura de dezembro conta em dezembro.
+    assert december["total_variable_expenses"] == monthly["total_variable_expenses"]
+    assert december["total_variable_expenses"] == "150.00"
+    assert december["remaining"] == monthly["remaining"]
+
+
+def test_trend_inclui_faturas_de_cartao(client, db_session_factory):
+    headers = auth_client(client)
+    setup_card_purchases(client, headers, db_session_factory)
+
+    summary = client.get(
+        "/api/dashboard/monthly", params={"month": "2026-12"}, headers=headers
+    ).json()
+
+    december_point = summary["trend"][-1]
+    assert december_point["month"] == "2026-12"
+    assert december_point["expenses"] == "150.00"

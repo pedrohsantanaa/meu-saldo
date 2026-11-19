@@ -25,7 +25,7 @@ describe('auth store', () => {
         token_type: 'bearer',
         expires_in: 3600,
         user: { id: 1, email: 'ana@example.com' },
-      })
+      }),
     )
 
     const store = useAuthStore()
@@ -62,7 +62,7 @@ describe('auth store', () => {
     const store = useAuthStore()
 
     await expect(
-      store.register({ name: 'Ana', email: 'ana@example.com', password: 'senha-forte-1' })
+      store.register({ name: 'Ana', email: 'ana@example.com', password: 'senha-forte-1' }),
     ).rejects.toThrow('Este e-mail já está cadastrado.')
   })
 })

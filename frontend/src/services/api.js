@@ -30,7 +30,7 @@ async function request(path, options = {}) {
       error.code ?? 'request_failed',
       error.message ?? `A requisição falhou com status ${response.status}.`,
       response.status,
-      error.details ?? null
+      error.details ?? null,
     )
   }
 

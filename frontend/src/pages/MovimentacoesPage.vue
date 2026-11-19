@@ -58,7 +58,7 @@ const categoryOptions = computed(() =>
   categories.value.map((category) => ({
     value: String(category.id),
     label: category.name,
-  }))
+  })),
 )
 
 const monthBounds = computed(() => {
@@ -227,10 +227,7 @@ onMounted(async () => {
       </template>
     </EmptyState>
 
-    <div
-      v-else
-      class="overflow-x-auto rounded-card border border-neutral-200 bg-white shadow-card"
-    >
+    <div v-else class="overflow-x-auto rounded-card border border-neutral-200 bg-white shadow-card">
       <table class="w-full min-w-[44rem] text-left text-sm">
         <thead class="border-b border-neutral-200 bg-neutral-50 text-xs uppercase text-neutral-500">
           <tr>

@@ -63,7 +63,11 @@ async function onSubmit() {
           required
         />
 
-        <p v-if="error" role="alert" class="rounded-md bg-negative-light px-3 py-2 text-sm text-negative">
+        <p
+          v-if="error"
+          role="alert"
+          class="rounded-md bg-negative-light px-3 py-2 text-sm text-negative"
+        >
           {{ error }}
         </p>
 
@@ -77,10 +81,7 @@ async function onSubmit() {
         </RouterLink>
       </p>
       <p class="mt-2 text-center text-sm text-neutral-500">
-        <RouterLink
-          to="/esqueci-senha"
-          class="font-medium text-primary hover:text-primary-dark"
-        >
+        <RouterLink to="/esqueci-senha" class="font-medium text-primary hover:text-primary-dark">
           Esqueci minha senha
         </RouterLink>
       </p>

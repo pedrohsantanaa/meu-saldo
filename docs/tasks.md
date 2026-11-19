@@ -571,51 +571,64 @@ anual abre a visão mensal. Testes: 47 no back-end e 21 no front-end.
 **Objetivo:** implementar o controle de vários cartões de crédito por
 usuário.
 
--   [ ] **T-044 \[P0\]** Criar modelo e migrações de cartões.
+-   [x] **T-044 \[P0\]** Criar modelo e migrações de cartões.
     -   Nome, emissor opcional, limite, fechamento, vencimento e
         situação.
     -   Associar cada cartão ao usuário.
     -   Não armazenar número completo, CVV ou senha.
--   [ ] **T-045 \[P0\]** Implementar API e interface de cartões.
+-   [x] **T-045 \[P0\]** Implementar API e interface de cartões.
     -   Listar, cadastrar, editar e inativar.
     -   Exibir limite e dados básicos.
     -   Impedir compras em cartões inativos.
--   [ ] **T-046 \[P0\]** Criar modelo de compras no cartão.
+-   [x] **T-046 \[P0\]** Criar modelo de compras no cartão.
     -   Cartão, categoria, descrição, data e valor.
     -   Associar compra ao usuário e cartão.
     -   Validar compatibilidade de propriedade dos registros.
--   [ ] **T-047 \[P0\]** Implementar cadastro e histórico de compras.
+-   [x] **T-047 \[P0\]** Implementar cadastro e histórico de compras.
     -   Registrar compra em cartão selecionado.
     -   Listar compras por cartão e período.
     -   Editar e excluir compras.
     -   Atualizar valores de orçamento relacionados.
--   [ ] **T-048 \[P0\]** Implementar cálculo do ciclo de fatura.
+-   [x] **T-048 \[P0\]** Implementar cálculo do ciclo de fatura.
     -   Considerar fechamento e vencimento.
     -   Tratar virada de mês e meses com duração diferente.
     -   Aplicar a regra aprovada para compras no dia do fechamento.
--   [ ] **T-049 \[P0\]** Implementar entidades e API de faturas.
+-   [x] **T-049 \[P0\]** Implementar entidades e API de faturas.
     -   Agrupar compras no ciclo correto.
     -   Calcular total da fatura.
     -   Consultar fatura atual, próxima e histórico.
     -   Evitar duplicidade no resumo financeiro.
--   [ ] **T-050 \[P1\]** Implementar acompanhamento de limite.
+-   [x] **T-050 \[P1\]** Implementar acompanhamento de limite.
     -   Calcular valor comprometido.
     -   Calcular limite disponível.
     -   Aplicar a política aprovada para parcelas e pagamentos.
--   [ ] **T-051 \[P1\]** Implementar pagamento de fatura, se aprovado.
+-   [x] **T-051 \[P1\]** Implementar pagamento de fatura, se aprovado.
     -   Registrar pagamento total ou parcial.
     -   Tratar pagamento como liquidação da obrigação.
     -   Não criar uma segunda despesa de consumo.
--   [ ] **T-052 \[P1\]** Implementar parcelamento, se aprovado para o
+-   [!] **T-052 \[P1\]** Implementar parcelamento, se aprovado para o
     MVP.
     -   Distribuir parcelas entre faturas.
     -   Garantir soma exata do valor original.
     -   Tratar diferenças de centavos.
     -   Atualizar limite e orçamento conforme regras aprovadas.
+    -   **Adiada:** o parcelamento não foi aprovado para o MVP (decisão
+        T-005); fica como evolução futura.
 
 **Critério de conclusão da fase:** o usuário consegue gerenciar vários
 cartões, registrar compras e consultar faturas; os cálculos não duplicam
 despesas.
+
+**Fase 6 concluída:** cartões, compras, faturas e pagamentos
+implementados com a política de contabilização aprovada (T-002/T-004):
+a compra conta no mês do vencimento da fatura e entra uma única vez nas
+despesas variáveis do resumo; o pagamento é liquidação (não gera nova
+despesa) e libera o limite (T-050/T-051). A atribuição da compra à
+fatura é fixada no registro (snapshot): alterar os dias de
+fechamento/vencimento não move compras já registradas. O item de
+orçamento de T-047 será composto a partir das compras na Fase 7.
+Parcelamento fora do MVP (T-052). Testes: 94 no back-end e 24 no
+front-end.
 
 ## 12. Fase 7 --- Orçamentos por cartão e categoria
 

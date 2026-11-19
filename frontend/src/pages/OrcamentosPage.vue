@@ -50,10 +50,17 @@ function remainder(row) {
       <MonthSelector v-model="period" />
 
       <div class="flex items-center gap-2">
-        <span class="flex h-8 w-8 items-center justify-center rounded-full bg-attention-light text-attention">
+        <span
+          class="flex h-8 w-8 items-center justify-center rounded-full bg-attention-light text-attention"
+        >
           <CreditCardIcon class="h-4 w-4" aria-hidden="true" />
         </span>
-        <BaseSelect v-model="card" :options="cardOptions" class="w-56" aria-label="Selecionar cartão" />
+        <BaseSelect
+          v-model="card"
+          :options="cardOptions"
+          class="w-56"
+          aria-label="Selecionar cartão"
+        />
       </div>
     </div>
 
@@ -81,7 +88,12 @@ function remainder(row) {
             </td>
             <td class="px-4 py-3">
               <div class="flex items-center gap-3">
-                <ProgressBar :value="row.spent" :max="row.budget || 1" :show-label="false" class="flex-1" />
+                <ProgressBar
+                  :value="row.spent"
+                  :max="row.budget || 1"
+                  :show-label="false"
+                  class="flex-1"
+                />
                 <span class="w-10 text-right text-xs text-neutral-500">
                   {{ row.budget ? `${Math.round((row.spent / row.budget) * 100)}%` : '0%' }}
                 </span>

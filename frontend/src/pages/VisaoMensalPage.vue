@@ -1,12 +1,7 @@
 <script setup>
 import { computed, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import {
-  BanknotesIcon,
-  ChartBarIcon,
-  CreditCardIcon,
-  PlusIcon,
-} from '@heroicons/vue/24/outline'
+import { BanknotesIcon, ChartBarIcon, CreditCardIcon, PlusIcon } from '@heroicons/vue/24/outline'
 
 import BaseButton from '../components/BaseButton.vue'
 import ChartBars from '../components/ChartBars.vue'
@@ -45,15 +40,14 @@ const monthParam = computed(() => {
 
 const totalExpenses = computed(() => {
   if (!summary.value) return 0
-  return (
-    Number(summary.value.total_fixed_expenses) +
-    Number(summary.value.total_variable_expenses) +
-    Number(summary.value.card_purchases_total)
-  )
+  // As faturas de cartão já estão incluídas em total_variable_expenses
+  // (spec.md §7.2): Despesas = fixas + variáveis, sem dupla contagem.
+  return Number(summary.value.total_fixed_expenses) + Number(summary.value.total_variable_expenses)
 })
 
 const donutData = computed(() => {
   if (!summary.value) return []
+  const cardTotal = Number(summary.value.card_purchases_total)
   return [
     {
       label: 'Fixas',
@@ -62,12 +56,12 @@ const donutData = computed(() => {
     },
     {
       label: 'Variáveis',
-      value: Number(summary.value.total_variable_expenses),
+      value: Number(summary.value.total_variable_expenses) - cardTotal,
       color: chartPalette.orange,
     },
     {
       label: 'Cartões',
-      value: Number(summary.value.card_purchases_total),
+      value: cardTotal,
       color: chartPalette.purple,
     },
   ]
@@ -101,7 +95,11 @@ const barsData = computed(() => {
 const groups = computed(() => {
   if (!summary.value) return []
   return [
-    { title: 'Contas a Receber', total: summary.value.total_income, items: summary.value.income_items },
+    {
+      title: 'Contas a Receber',
+      total: summary.value.total_income,
+      items: summary.value.income_items,
+    },
     {
       title: 'Contas a Pagar - Fixas',
       total: summary.value.total_fixed_expenses,
@@ -131,7 +129,7 @@ watch(
   () => route.query.month,
   () => {
     period.value = initialPeriod()
-  }
+  },
 )
 
 function goAddMovement() {
@@ -141,7 +139,10 @@ function goAddMovement() {
 
 <template>
   <section>
-    <SectionHeader title="Visão Mensal" description="Acompanhe suas receitas, despesas e saldo do mês.">
+    <SectionHeader
+      title="Visão Mensal"
+      description="Acompanhe suas receitas, despesas e saldo do mês."
+    >
       <template #actions>
         <MonthSelector v-model="period" />
         <BaseButton @click="goAddMovement">
@@ -209,7 +210,11 @@ function goAddMovement() {
           <h2 class="mb-2 text-base font-semibold">Receitas vs Despesas (últimos 6 meses)</h2>
           <ChartBars :labels="barsData.labels" :series="barsData.series" />
           <div class="mt-2 flex items-center justify-center gap-6 text-sm">
-            <span v-for="serie in barsData.series" :key="serie.label" class="flex items-center gap-2">
+            <span
+              v-for="serie in barsData.series"
+              :key="serie.label"
+              class="flex items-center gap-2"
+            >
               <span class="h-2.5 w-2.5 rounded-full" :style="{ backgroundColor: serie.color }" />
               {{ serie.label }}
             </span>
@@ -259,7 +264,10 @@ function goAddMovement() {
         </template>
       </EmptyState>
 
-      <ul v-else class="divide-y divide-neutral-100 rounded-card border border-neutral-200 bg-white shadow-card">
+      <ul
+        v-else
+        class="divide-y divide-neutral-100 rounded-card border border-neutral-200 bg-white shadow-card"
+      >
         <li
           v-for="movement in summary.recent_transactions"
           :key="movement.id"
@@ -273,7 +281,8 @@ function goAddMovement() {
             class="font-semibold tabular-nums"
             :class="movement.type === 'income' ? 'text-positive' : 'text-negative'"
           >
-            {{ movement.type === 'income' ? '+' : '−' }} {{ formatCurrency(Number(movement.amount)) }}
+            {{ movement.type === 'income' ? '+' : '−' }}
+            {{ formatCurrency(Number(movement.amount)) }}
           </p>
         </li>
       </ul>

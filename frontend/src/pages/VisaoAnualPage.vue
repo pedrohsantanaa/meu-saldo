@@ -1,11 +1,7 @@
 <script setup>
 import { computed, onMounted, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
-import {
-  BanknotesIcon,
-  ChartBarIcon,
-  CreditCardIcon,
-} from '@heroicons/vue/24/outline'
+import { BanknotesIcon, ChartBarIcon, CreditCardIcon } from '@heroicons/vue/24/outline'
 
 import BaseSelect from '../components/BaseSelect.vue'
 import ChartArea from '../components/ChartArea.vue'
@@ -56,7 +52,7 @@ const evolution = computed(() => {
       label: 'Despesas',
       color: chartPalette.red,
       values: items.map(
-        (item) => Number(item.total_fixed_expenses) + Number(item.total_variable_expenses)
+        (item) => Number(item.total_fixed_expenses) + Number(item.total_variable_expenses),
       ),
     },
     {
@@ -109,7 +105,9 @@ onMounted(load)
     <template v-else-if="summary">
       <div class="overflow-x-auto rounded-card border border-neutral-200 bg-white shadow-card">
         <table class="w-full min-w-[52rem] text-left text-sm">
-          <thead class="border-b border-neutral-200 bg-neutral-50 text-xs uppercase text-neutral-500">
+          <thead
+            class="border-b border-neutral-200 bg-neutral-50 text-xs uppercase text-neutral-500"
+          >
             <tr>
               <th class="px-4 py-2">Descrição</th>
               <th

@@ -1,11 +1,6 @@
 <script setup>
 import { computed, onMounted, ref } from 'vue'
-import {
-  CheckIcon,
-  PencilSquareIcon,
-  PlusIcon,
-  PowerIcon,
-} from '@heroicons/vue/24/outline'
+import { CheckIcon, PencilSquareIcon, PlusIcon, PowerIcon } from '@heroicons/vue/24/outline'
 
 import BaseBadge from '../components/BaseBadge.vue'
 import BaseButton from '../components/BaseButton.vue'
@@ -70,9 +65,8 @@ const filtered = computed(() => {
 })
 
 function countBy(key) {
-  return categories.value.filter(
-    (item) => item.group_type === key || item.expense_type === key
-  ).length
+  return categories.value.filter((item) => item.group_type === key || item.expense_type === key)
+    .length
 }
 
 function typeLabel(item) {
@@ -181,7 +175,9 @@ onMounted(load)
         class="overflow-x-auto rounded-card border border-neutral-200 bg-white shadow-card"
       >
         <table class="w-full min-w-[36rem] text-left text-sm">
-          <thead class="border-b border-neutral-200 bg-neutral-50 text-xs uppercase text-neutral-500">
+          <thead
+            class="border-b border-neutral-200 bg-neutral-50 text-xs uppercase text-neutral-500"
+          >
             <tr>
               <th class="px-4 py-3">Categoria</th>
               <th class="px-4 py-3">Tipo</th>

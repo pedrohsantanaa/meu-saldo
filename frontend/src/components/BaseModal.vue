@@ -27,7 +27,11 @@ onBeforeUnmount(() => document.removeEventListener('keydown', onKeydown))
       aria-modal="true"
       :aria-label="title"
     >
-      <div class="absolute inset-0 bg-black/40" aria-hidden="true" @click="emit('update:open', false)" />
+      <div
+        class="absolute inset-0 bg-black/40"
+        aria-hidden="true"
+        @click="emit('update:open', false)"
+      />
 
       <div class="relative w-full max-w-md rounded-card bg-white p-6 shadow-panel">
         <div class="mb-4 flex items-start justify-between gap-4">

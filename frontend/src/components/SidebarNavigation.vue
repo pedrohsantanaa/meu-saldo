@@ -14,7 +14,9 @@ const dashboardOpen = ref(true)
 const userName = computed(() => auth.user?.name || 'Minha conta')
 
 const dashboardActive = computed(() =>
-  navItems.find((item) => item.name === 'dashboard')?.children?.some((child) => child.name === route.name)
+  navItems
+    .find((item) => item.name === 'dashboard')
+    ?.children?.some((child) => child.name === route.name),
 )
 
 async function onLogout() {
