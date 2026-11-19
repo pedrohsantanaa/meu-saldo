@@ -79,7 +79,11 @@ function mockApi() {
 }
 
 async function mountPage() {
-  const wrapper = mount(CartoesPage)
+  const wrapper = mount(CartoesPage, {
+    global: {
+      stubs: { Teleport: { template: '<div><slot /></div>' } },
+    },
+  })
   await flushPromises()
   return wrapper
 }
@@ -119,5 +123,56 @@ describe('CartoesPage', () => {
     expect(wrapper.text()).toContain('Fatura atual')
     expect(wrapper.text()).toContain('Em aberto')
     expect(wrapper.text()).toContain('Registrar pagamento')
+  })
+
+  it('cadastra um cartão pelo formulário (AC-047)', async () => {
+    api.post.mockResolvedValue(card)
+    const wrapper = await mountPage()
+
+    await wrapper
+      .findAll('button')
+      .find((button) => button.text().includes('Novo Cartão'))
+      .trigger('click')
+    await flushPromises()
+
+    const form = wrapper.find('form')
+    await form.findAll('input')[0].setValue('Nubank')
+    await form.findAll('input')[1].setValue('Nubank')
+    await form.findAll('input')[2].setValue('R$ 5.000,00')
+
+    await form.trigger('submit')
+    await flushPromises()
+
+    const [path, payload] = api.post.mock.calls[0]
+    expect(path).toBe('/cards')
+    expect(payload.name).toBe('Nubank')
+    expect(payload.credit_limit).toBe(5000)
+    expect(payload.closing_day).toBe(1)
+    expect(payload.due_day).toBe(10)
+  })
+
+  it('registra uma compra pelo formulário (AC-053)', async () => {
+    api.post.mockResolvedValue({})
+    const wrapper = await mountPage()
+
+    await wrapper
+      .findAll('button')
+      .find((button) => button.text().includes('Nova Compra'))
+      .trigger('click')
+    await flushPromises()
+
+    const form = wrapper.find('form')
+    await form.findAll('input')[0].setValue('Mercado')
+    await form.findAll('input')[1].setValue('R$ 385,26')
+    await form.find('select').setValue('1')
+
+    await form.trigger('submit')
+    await flushPromises()
+
+    const [path, payload] = api.post.mock.calls[0]
+    expect(path).toBe('/cards/1/purchases')
+    expect(payload.description).toBe('Mercado')
+    expect(payload.amount ?? payload.total_amount).toBe(385.26)
+    expect(payload.category_id).toBe(1)
   })
 })

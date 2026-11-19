@@ -2,7 +2,7 @@
 
 ## Repo status
 
-- Product specs live in `docs/` (plus `docs/interface.png`, the approved prototype); the implementation plan is `docs/tasks.md` (T-001…T-073). **Fases 0–7 (T-001…T-059) are implemented** (foundation, visual identity, auth, categories, transactions, monthly/annual dashboard, credit cards/invoices/limits, budgets by card+category); **Fases 8–9 remain** (test/security/usability pass, deployment). Code: `backend/` (FastAPI), `frontend/` (Vue 3 + Vite + Tailwind), `docker-compose.yml`.
+- Product specs live in `docs/` (plus `docs/interface.png`, the approved prototype); the implementation plan is `docs/tasks.md` (T-001…T-073). **Fases 0–8 (T-001…T-067) are implemented** (foundation, visual identity, auth, categories, transactions, monthly/annual dashboard, credit cards/invoices/limits, budgets by card+category, test/security/usability pass); **Fase 9 remains** (production config, hosting, backups, docs). Code: `backend/` (FastAPI), `frontend/` (Vue 3 + Vite + Tailwind), `docker-compose.yml`.
 - Layout: `backend/app/{api,core,models,schemas,services,repositories}`, tests in `backend/tests`, migrations in `backend/alembic`; `frontend/src/{components,layouts,pages,router,services,stores,utils}`. See `tasks.md` §4.
 - Stack: Vue 3 + Tailwind + Pinia + vue-router, Python/FastAPI + SQLAlchemy 2 + Alembic, PostgreSQL 16, token auth planned (`design.md` §8.1).
 

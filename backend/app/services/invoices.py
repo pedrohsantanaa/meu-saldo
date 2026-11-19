@@ -110,6 +110,17 @@ def invoice_payload(db: Session, invoice: CreditCardInvoice) -> dict:
 
 
 def list_invoices(db: Session, user: User, card_id: int) -> list[dict]:
+    card = db.scalar(
+        select(CreditCard).where(
+            CreditCard.id == card_id, CreditCard.user_id == user.id
+        )
+    )
+    if card is None:
+        raise AppError(
+            code="card_not_found",
+            message="Cartão não encontrado.",
+            http_status=404,
+        )
     invoices = list(
         db.scalars(
             select(CreditCardInvoice)

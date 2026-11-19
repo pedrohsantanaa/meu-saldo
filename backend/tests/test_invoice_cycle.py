@@ -120,3 +120,66 @@ def test_ciclos_sao_continuos_ao_longo_dos_meses():
     assert novembro.closing_date == date(2026, 11, 28)
     assert dezembro.closing_date == date(2026, 12, 28)
     assert dezembro.reference_month == date(2027, 1, 1)
+
+
+# --- T-061: meses com 28, 29, 30 e 31 dias e virada de ano ---------------
+
+
+def test_mes_com_28_dias_fechamento_31_vira_28_de_fevereiro():
+    # Fevereiro/2026 tem 28 dias.
+    cycle = cycle_of(date(2026, 2, 1), closing_day=31, due_day=10)
+
+    assert cycle.closing_date == date(2026, 2, 28)
+    assert cycle.due_date == date(2026, 3, 10)
+
+
+def test_mes_com_29_dias_fechamento_30_vira_29_de_fevereiro():
+    # Fevereiro/2028 (bissexto) tem 29 dias.
+    cycle = cycle_of(date(2028, 2, 1), closing_day=30, due_day=10)
+
+    assert cycle.closing_date == date(2028, 2, 29)
+    assert cycle.due_date == date(2028, 3, 10)
+
+
+def test_compra_no_dia_29_de_fevereiro_bissexto_vai_para_o_ciclo_seguinte():
+    cycle = cycle_of(date(2028, 2, 29), closing_day=30, due_day=10)
+
+    assert cycle.closing_date == date(2028, 3, 30)
+
+
+def test_mes_com_30_dias_fechamento_31_vira_30_de_abril():
+    cycle = cycle_of(date(2026, 4, 1), closing_day=31, due_day=10)
+
+    assert cycle.closing_date == date(2026, 4, 30)
+
+
+def test_compra_no_dia_30_de_abril_entra_no_ciclo_seguinte():
+    cycle = cycle_of(date(2026, 4, 30), closing_day=31, due_day=10)
+
+    assert cycle.closing_date == date(2026, 5, 31)
+
+
+def test_mes_com_31_dias_usa_o_dia_configurado():
+    cycle = cycle_of(date(2026, 1, 15), closing_day=31, due_day=10)
+
+    assert cycle.closing_date == date(2026, 1, 31)
+    assert cycle.due_date == date(2026, 2, 10)
+
+
+def test_virada_de_ano_no_ciclo_da_fatura():
+    # Compra em 29/12/2026 (fechamento 28): ciclo fecha em 28/01/2027.
+    cycle = cycle_of(date(2026, 12, 29))
+
+    assert cycle.closing_date == date(2027, 1, 28)
+    assert cycle.due_date == date(2027, 2, 10)
+    assert cycle.reference_month == date(2027, 2, 1)
+
+
+def test_virada_de_ano_no_vencimento_dia_31():
+    # Fechamento 28/12: primeira ocorrência do dia 31 posterior é 31/12.
+    assert due_after(31, date(2026, 12, 28)) == date(2026, 12, 31)
+
+    # Já com fechamento em 31/12, o vencimento cai em janeiro (mês curto
+    # de fevereiro também é ajustado: dia 31 → 28/02).
+    assert due_after(31, date(2026, 12, 31)) == date(2027, 1, 31)
+    assert due_after(31, date(2027, 1, 31)) == date(2027, 2, 28)

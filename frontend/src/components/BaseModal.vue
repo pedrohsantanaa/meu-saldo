@@ -1,5 +1,5 @@
 <script setup>
-import { onBeforeUnmount, onMounted } from 'vue'
+import { nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 
 const props = defineProps({
   open: { type: Boolean, default: false },
@@ -7,6 +7,17 @@ const props = defineProps({
 })
 
 const emit = defineEmits(['update:open'])
+
+const panel = ref(null)
+
+// Acessibilidade (T-066): ao abrir, o foco vai para o diálogo.
+watch(
+  () => props.open,
+  (isOpen) => {
+    if (isOpen) nextTick(() => panel.value?.focus())
+  },
+  { immediate: true },
+)
 
 function onKeydown(event) {
   if (event.key === 'Escape' && props.open) {
@@ -33,7 +44,11 @@ onBeforeUnmount(() => document.removeEventListener('keydown', onKeydown))
         @click="emit('update:open', false)"
       />
 
-      <div class="relative w-full max-w-md rounded-card bg-white p-6 shadow-panel">
+      <div
+        ref="panel"
+        tabindex="-1"
+        class="relative w-full max-w-md rounded-card bg-white p-6 shadow-panel outline-none"
+      >
         <div class="mb-4 flex items-start justify-between gap-4">
           <h2 class="text-lg">{{ title }}</h2>
           <button

@@ -697,7 +697,7 @@ categoria orçada (T-059). Testes: 110 no back-end e 39 no front-end.
 **Objetivo:** verificar cálculos, permissões, usabilidade e
 estabilidade.
 
--   [ ] **T-060 \[P0\]** Criar testes unitários para cálculos
+-   [x] **T-060 \[P0\]** Criar testes unitários para cálculos
     financeiros.
     -   Soma de receitas.
     -   Soma de despesas fixas e variáveis.
@@ -705,24 +705,24 @@ estabilidade.
     -   Total de saídas e restante.
     -   Orçamento menos gastos.
     -   Distribuição de parcelas, se aplicável.
--   [ ] **T-061 \[P0\]** Criar testes de faturas.
+-   [x] **T-061 \[P0\]** Criar testes de faturas.
     -   Compra antes do fechamento.
     -   Compra depois do fechamento.
     -   Compra no dia do fechamento.
     -   Meses com 28, 29, 30 e 31 dias.
     -   Virada de ano.
--   [ ] **T-062 \[P0\]** Criar testes de autorização.
+-   [x] **T-062 \[P0\]** Criar testes de autorização.
     -   Usuário não acessa cartão de outro usuário.
     -   Usuário não acessa movimentação de outro usuário.
     -   Usuário não altera orçamento de outro usuário.
     -   Usuário não consulta fatura de outro usuário.
--   [ ] **T-063 \[P0\]** Criar testes de integração da API.
+-   [x] **T-063 \[P0\]** Criar testes de integração da API.
     -   Cadastro e autenticação.
     -   Categorias e movimentações.
     -   Dashboard mensal e anual.
     -   Cartões, compras e faturas.
     -   Orçamentos.
--   [ ] **T-064 \[P0\]** Criar testes de interface dos fluxos
+-   [x] **T-064 \[P0\]** Criar testes de interface dos fluxos
     essenciais.
     -   Registrar receita.
     -   Registrar despesa.
@@ -730,18 +730,18 @@ estabilidade.
     -   Alternar visão mensal/anual.
     -   Cadastrar cartão e compra.
     -   Criar orçamento e verificar restante.
--   [ ] **T-065 \[P1\]** Realizar revisão de segurança.
+-   [x] **T-065 \[P1\]** Realizar revisão de segurança.
     -   Validar proteção das rotas.
     -   Verificar exposição de dados em logs.
     -   Verificar armazenamento de senhas e tokens.
     -   Verificar configuração de CORS e HTTPS para produção.
--   [ ] **T-066 \[P1\]** Realizar revisão de usabilidade e
+-   [x] **T-066 \[P1\]** Realizar revisão de usabilidade e
     acessibilidade.
     -   Navegação por teclado.
     -   Rótulos e mensagens de validação.
     -   Contraste e legibilidade.
     -   Fluxos em telas pequenas.
--   [ ] **T-067 \[P1\]** Validar cálculos com exemplos reais da
+-   [x] **T-067 \[P1\]** Validar cálculos com exemplos reais da
     planilha.
     -   Selecionar meses com receitas e despesas variadas.
     -   Comparar totais e restante.
@@ -751,6 +751,32 @@ estabilidade.
 **Critério de conclusão da fase:** testes essenciais passam e os
 cálculos do sistema são reconciliados com exemplos da planilha segundo
 as regras aprovadas.
+
+**Fase 8 concluída:** testes ampliados para 159 no back-end e 50 no
+front-end. T-060/T-061: cálculos financeiros (receitas, fixas,
+variáveis, investimentos, saídas, restante, orçamento − gastos e
+precisão decimal sem ponto flutuante) e faturas (antes/depois/no dia do
+fechamento, meses de 28/29/30/31 dias, ano bissexto e virada de ano).
+T-062/T-063: autorização (nenhum acesso a cartão, movimentação,
+orçamento, compra ou fatura alheios; todas as rotas privadas exigem
+token) e integração ponta a ponta com consistência após alterações.
+T-064: testes de interface dos fluxos essenciais (receita, despesa,
+navegação por meses/anos, alternar visão mensal/anual, cartão, compra e
+orçamento). T-065 (segurança): rotas protegidas confirmadas; senhas com
+bcrypt e tokens de recuperação com hash; erros de validação não refletem
+mais os valores enviados (ex.: senhas); produção recusa iniciar com
+`SECRET_KEY` de desenvolvimento ou `EMAIL_BACKEND=console`; HTTPS e
+CORS restrito são da configuração de produção (T-068/T-069). T-066
+(usabilidade/acessibilidade): teclado (Escape fecha modais; foco
+movido para o diálogo ao abrir), rótulos associados e mensagens com
+`role="alert"`, significados não dependem só de cor, tabelas com
+rolagem em telas pequenas; recomendações registradas: focus trap nos
+modais e passada manual em telas pequenas (T-043). T-067: reconciliação
+com os exemplos oficiais da planilha (`spec.md` §7.4) cobrindo
+AC-096 a AC-099 — competência da fatura, ausência de dupla contagem,
+resumo do mês (saídas R$ 3.200,00, restante R$ 1.800,00) e orçamento por
+ciclo; sem divergências além das já explicadas pelas regras definidas
+(AC-100).
 
 ## 14. Fase 9 --- Publicação e operação
 

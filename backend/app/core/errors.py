@@ -52,8 +52,19 @@ def register_error_handlers(app: FastAPI) -> None:
             code="validation_error",
             message="Os dados recebidos são inválidos.",
             http_status=status.HTTP_422_UNPROCESSABLE_ENTITY,
-            # jsonable_encoder converte Decimals de limites (ex.: gt) em JSON.
-            details=jsonable_encoder(exc.errors()),
+            # Não reflete os valores enviados (ex.: senhas) na resposta
+            # (T-065, AC-094); jsonable_encoder converte Decimals de
+            # limites (ex.: gt) em JSON.
+            details=jsonable_encoder(
+                [
+                    {
+                        key: value
+                        for key, value in item.items()
+                        if key not in {"input", "ctx"}
+                    }
+                    for item in exc.errors()
+                ]
+            ),
         )
         return JSONResponse(status_code=error.http_status, content=error.to_payload())
 
