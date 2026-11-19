@@ -10,12 +10,14 @@ import BaseSelect from '../components/BaseSelect.vue'
 import BaseTabs from '../components/BaseTabs.vue'
 import ConfirmDialog from '../components/ConfirmDialog.vue'
 import EmptyState from '../components/EmptyState.vue'
+import LoadErrorState from '../components/LoadErrorState.vue'
 import LoadingState from '../components/LoadingState.vue'
 import SectionHeader from '../components/SectionHeader.vue'
 import { api } from '../services/api'
 
 const categories = ref([])
 const loading = ref(true)
+const error = ref('')
 const filter = ref('todas')
 
 const modalOpen = ref(false)
@@ -82,8 +84,15 @@ function badgeVariant(item) {
 
 async function load() {
   loading.value = true
-  categories.value = await api.get('/categories')
-  loading.value = false
+  error.value = ''
+  try {
+    categories.value = await api.get('/categories')
+  } catch (err) {
+    // AC-080: erro visível com nova tentativa, nunca spinner eterno.
+    error.value = err.message || 'Não foi possível carregar as categorias.'
+  } finally {
+    loading.value = false
+  }
 }
 
 function openCreate() {
@@ -158,6 +167,8 @@ onMounted(load)
     </SectionHeader>
 
     <LoadingState v-if="loading" />
+
+    <LoadErrorState v-else-if="error" :message="error" @retry="load" />
 
     <template v-else>
       <div class="mb-4">

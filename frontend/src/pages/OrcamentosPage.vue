@@ -5,6 +5,7 @@ import { CreditCardIcon } from '@heroicons/vue/24/outline'
 import BaseSelect from '../components/BaseSelect.vue'
 import BudgetSection from '../components/BudgetSection.vue'
 import EmptyState from '../components/EmptyState.vue'
+import LoadErrorState from '../components/LoadErrorState.vue'
 import LoadingState from '../components/LoadingState.vue'
 import MonthSelector from '../components/MonthSelector.vue'
 import SectionHeader from '../components/SectionHeader.vue'
@@ -14,16 +15,27 @@ const period = ref(new Date())
 const cards = ref([])
 const selectedCardId = ref('')
 const loading = ref(true)
+const error = ref('')
 
 const cardOptions = computed(() =>
   cards.value.map((card) => ({ value: String(card.id), label: card.name })),
 )
 
-onMounted(async () => {
-  cards.value = await api.get('/cards')
-  selectedCardId.value = String(cards.value[0]?.id ?? '')
-  loading.value = false
-})
+async function load() {
+  loading.value = true
+  error.value = ''
+  try {
+    cards.value = await api.get('/cards')
+    selectedCardId.value = String(cards.value[0]?.id ?? '')
+  } catch (err) {
+    // AC-080: erro visível com nova tentativa, nunca spinner eterno.
+    error.value = err.message || 'Não foi possível carregar os cartões.'
+  } finally {
+    loading.value = false
+  }
+}
+
+onMounted(load)
 </script>
 
 <template>
@@ -34,6 +46,8 @@ onMounted(async () => {
     />
 
     <LoadingState v-if="loading" />
+
+    <LoadErrorState v-else-if="error" :message="error" @retry="load" />
 
     <EmptyState
       v-else-if="cards.length === 0"

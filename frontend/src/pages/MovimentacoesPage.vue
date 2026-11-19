@@ -16,6 +16,7 @@ import BaseModal from '../components/BaseModal.vue'
 import BaseSelect from '../components/BaseSelect.vue'
 import ConfirmDialog from '../components/ConfirmDialog.vue'
 import EmptyState from '../components/EmptyState.vue'
+import LoadErrorState from '../components/LoadErrorState.vue'
 import LoadingState from '../components/LoadingState.vue'
 import MonthSelector from '../components/MonthSelector.vue'
 import SectionHeader from '../components/SectionHeader.vue'
@@ -34,6 +35,7 @@ const route = useRoute()
 const movements = ref([])
 const categories = ref([])
 const loading = ref(true)
+const error = ref('')
 
 const modalOpen = ref(false)
 const editing = ref(null)
@@ -101,14 +103,21 @@ function detailLabel(movement) {
 
 async function load() {
   loading.value = true
+  error.value = ''
   const params = new URLSearchParams(monthBounds.value)
   if (typeFilter.value) params.set('type', typeFilter.value)
   if (categoryFilter.value) params.set('category_id', categoryFilter.value)
   if (paymentFilter.value) params.set('payment_method', paymentFilter.value)
   if (search.value) params.set('search', search.value)
 
-  movements.value = await api.get(`/transactions?${params.toString()}`)
-  loading.value = false
+  try {
+    movements.value = await api.get(`/transactions?${params.toString()}`)
+  } catch (err) {
+    // AC-080: erro visível com nova tentativa, nunca spinner eterno.
+    error.value = err.message || 'Não foi possível carregar as movimentações.'
+  } finally {
+    loading.value = false
+  }
 }
 
 watch([period, typeFilter, categoryFilter, paymentFilter], load)
@@ -216,6 +225,8 @@ onMounted(async () => {
     </div>
 
     <LoadingState v-if="loading" />
+
+    <LoadErrorState v-else-if="error" :message="error" @retry="load" />
 
     <EmptyState
       v-else-if="movements.length === 0"

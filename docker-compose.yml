@@ -27,6 +27,15 @@ services:
     depends_on:
       db:
         condition: service_healthy
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "python -c \"import urllib.request; urllib.request.urlopen('http://localhost:8000/health')\"",
+        ]
+      interval: 5s
+      timeout: 5s
+      retries: 12
     # As migrações rodam a cada start para que o schema acompanhe o
     # código (T-070); manualmente: docker compose exec backend alembic upgrade head
     command: sh -c "alembic upgrade head && uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload"
@@ -41,7 +50,8 @@ services:
     ports:
       - "5173:5173"
     depends_on:
-      - backend
+      backend:
+        condition: service_healthy
     command: npm run dev -- --host 0.0.0.0
 
 volumes:

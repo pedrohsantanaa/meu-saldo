@@ -19,6 +19,7 @@ import BudgetSection from '../components/BudgetSection.vue'
 import ConfirmDialog from '../components/ConfirmDialog.vue'
 import CurrencyInput from '../components/CurrencyInput.vue'
 import EmptyState from '../components/EmptyState.vue'
+import LoadErrorState from '../components/LoadErrorState.vue'
 import LoadingState from '../components/LoadingState.vue'
 import MonthSelector from '../components/MonthSelector.vue'
 import ProgressBar from '../components/ProgressBar.vue'
@@ -36,6 +37,7 @@ const invoices = ref([])
 const invoiceOverview = ref(null)
 const loading = ref(true)
 const loadingDetails = ref(false)
+const error = ref('')
 
 const selectedCardId = ref(null)
 const period = ref(new Date())
@@ -137,6 +139,25 @@ async function loadDetails() {
   invoices.value = invoiceList
   invoiceOverview.value = overview
   loadingDetails.value = false
+}
+
+async function loadAll() {
+  // AC-080: erro visível com nova tentativa, nunca spinner eterno.
+  loading.value = true
+  error.value = ''
+  try {
+    await loadCards()
+  } catch (err) {
+    error.value = err.message || 'Não foi possível carregar os cartões.'
+  } finally {
+    loading.value = false
+  }
+  try {
+    await loadDetails()
+  } catch (err) {
+    error.value = err.message || 'Não foi possível carregar os detalhes do cartão.'
+    loadingDetails.value = false
+  }
 }
 
 watch([selectedCardId, period], loadDetails)
@@ -265,10 +286,13 @@ async function onSavePayment() {
 }
 
 onMounted(async () => {
-  categories.value = await api.get('/categories')
-  await loadCards()
-  loading.value = false
-  await loadDetails()
+  try {
+    categories.value = await api.get('/categories')
+  } catch {
+    // As categorias alimentam os formulários; as cargas principais
+    // reportam erro próprio se a API estiver indisponível.
+  }
+  await loadAll()
 })
 </script>
 
@@ -284,6 +308,8 @@ onMounted(async () => {
     </SectionHeader>
 
     <LoadingState v-if="loading" />
+
+    <LoadErrorState v-else-if="error" :message="error" @retry="loadAll" />
 
     <EmptyState
       v-else-if="cards.length === 0"

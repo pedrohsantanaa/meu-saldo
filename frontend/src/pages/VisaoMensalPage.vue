@@ -7,6 +7,7 @@ import BaseButton from '../components/BaseButton.vue'
 import ChartBars from '../components/ChartBars.vue'
 import ChartDonut from '../components/ChartDonut.vue'
 import EmptyState from '../components/EmptyState.vue'
+import LoadErrorState from '../components/LoadErrorState.vue'
 import LoadingState from '../components/LoadingState.vue'
 import MonthSelector from '../components/MonthSelector.vue'
 import SectionHeader from '../components/SectionHeader.vue'
@@ -31,6 +32,7 @@ function initialPeriod() {
 const period = ref(initialPeriod())
 const summary = ref(null)
 const loading = ref(true)
+const error = ref('')
 
 const monthParam = computed(() => {
   const year = period.value.getFullYear()
@@ -120,11 +122,20 @@ const groups = computed(() => {
 
 async function load() {
   loading.value = true
-  summary.value = await api.get(`/dashboard/monthly?month=${monthParam.value}`)
-  loading.value = false
+  error.value = ''
+  try {
+    summary.value = await api.get(`/dashboard/monthly?month=${monthParam.value}`)
+  } catch (err) {
+    // AC-080: erro visível com nova tentativa, nunca spinner eterno.
+    error.value = err.message || 'Não foi possível carregar o resumo do mês.'
+  } finally {
+    loading.value = false
+  }
 }
 
-watch(period, load)
+// `immediate` dispara a carga inicial: sem ele, a página ficaria em
+// carregamento eterno até o usuário trocar o mês.
+watch(period, load, { immediate: true })
 watch(
   () => route.query.month,
   () => {
@@ -153,6 +164,8 @@ function goAddMovement() {
     </SectionHeader>
 
     <LoadingState v-if="loading" />
+
+    <LoadErrorState v-else-if="error" :message="error" @retry="load" />
 
     <template v-else-if="summary">
       <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">

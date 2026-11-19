@@ -95,6 +95,30 @@ describe('BudgetSection', () => {
     expect(wrapper.text()).toContain('700,00')
   })
 
+  it('mostra erro com nova tentativa quando a API falha (AC-080)', async () => {
+    api.get.mockImplementation((path) => {
+      if (path === '/categories') return Promise.resolve(categories)
+      return Promise.reject(new Error('Serviço indisponível'))
+    })
+    const wrapper = await mountSection()
+
+    expect(wrapper.text()).toContain('Serviço indisponível')
+    expect(wrapper.text()).toContain('Tentar novamente')
+
+    api.get.mockImplementation((path) => {
+      if (path === '/categories') return Promise.resolve(categories)
+      return Promise.resolve(summary)
+    })
+    const retry = wrapper
+      .findAll('button')
+      .find((button) => button.text().includes('Tentar novamente'))
+    await retry.trigger('click')
+    await flushPromises()
+
+    expect(wrapper.text()).not.toContain('Serviço indisponível')
+    expect(wrapper.text()).toContain('Alimentação')
+  })
+
   it('cria um orçamento pelo formulário (AC-064/AC-068)', async () => {
     api.post.mockResolvedValue({
       id: 5,

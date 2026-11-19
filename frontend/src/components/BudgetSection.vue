@@ -9,6 +9,7 @@ import BaseSelect from './BaseSelect.vue'
 import ConfirmDialog from './ConfirmDialog.vue'
 import CurrencyInput from './CurrencyInput.vue'
 import EmptyState from './EmptyState.vue'
+import LoadErrorState from './LoadErrorState.vue'
 import LoadingState from './LoadingState.vue'
 import ProgressBar from './ProgressBar.vue'
 import PurchaseForm from './PurchaseForm.vue'
@@ -172,13 +173,7 @@ onMounted(async () => {
       </BaseButton>
     </div>
 
-    <p
-      v-if="loadError"
-      role="alert"
-      class="mb-4 rounded-md bg-negative-light px-3 py-2 text-sm text-negative"
-    >
-      {{ loadError }}
-    </p>
+    <LoadErrorState v-if="loadError" class="mb-4" :message="loadError" @retry="load" />
 
     <LoadingState v-if="loading" />
 

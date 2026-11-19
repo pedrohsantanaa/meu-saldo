@@ -5,6 +5,7 @@ import { BanknotesIcon, ChartBarIcon, CreditCardIcon } from '@heroicons/vue/24/o
 
 import BaseSelect from '../components/BaseSelect.vue'
 import ChartArea from '../components/ChartArea.vue'
+import LoadErrorState from '../components/LoadErrorState.vue'
 import LoadingState from '../components/LoadingState.vue'
 import SectionHeader from '../components/SectionHeader.vue'
 import SummaryCard from '../components/SummaryCard.vue'
@@ -16,6 +17,7 @@ const router = useRouter()
 const year = ref(String(new Date().getFullYear()))
 const summary = ref(null)
 const loading = ref(true)
+const error = ref('')
 
 const yearOptions = Array.from({ length: 5 }, (_, index) => {
   const value = String(2024 + index)
@@ -76,8 +78,15 @@ function openMonth(index) {
 
 async function load() {
   loading.value = true
-  summary.value = await api.get(`/dashboard/annual?year=${year.value}`)
-  loading.value = false
+  error.value = ''
+  try {
+    summary.value = await api.get(`/dashboard/annual?year=${year.value}`)
+  } catch (err) {
+    // AC-080: erro visível com nova tentativa, nunca spinner eterno.
+    error.value = err.message || 'Não foi possível carregar o resumo do ano.'
+  } finally {
+    loading.value = false
+  }
 }
 
 watch(year, load)
@@ -101,6 +110,8 @@ onMounted(load)
     </SectionHeader>
 
     <LoadingState v-if="loading" />
+
+    <LoadErrorState v-else-if="error" :message="error" @retry="load" />
 
     <template v-else-if="summary">
       <div class="overflow-x-auto rounded-card border border-neutral-200 bg-white shadow-card">
