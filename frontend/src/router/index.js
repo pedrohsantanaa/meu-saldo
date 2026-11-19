@@ -93,29 +93,37 @@ const routes = [
   },
 ]
 
-const router = createRouter({
-  history: createWebHistory(),
-  routes,
-})
+export function createAppRouter() {
+  const router = createRouter({
+    history: createWebHistory(),
+    routes,
+  })
 
-router.beforeEach((to) => {
-  const auth = useAuthStore()
+  router.beforeEach((to) => {
+    const auth = useAuthStore()
 
-  // T-024: rotas privadas exigem autenticação; usuários não autenticados
-  // são redirecionados para o login.
-  if (!to.meta.public && !auth.isAuthenticated) {
-    return { name: 'login', query: { redirect: to.fullPath } }
-  }
+    // T-024: rotas privadas exigem autenticação; usuários não autenticados
+    // são redirecionados para o login.
+    if (!to.meta.public && !auth.isAuthenticated) {
+      return { name: 'login', query: { redirect: to.fullPath } }
+    }
 
-  if (to.name === 'login' && auth.isAuthenticated) {
-    return { name: 'visao-mensal' }
-  }
+    if (to.name === 'login' && auth.isAuthenticated) {
+      return { name: 'visao-mensal' }
+    }
 
-  return true
-})
+    return true
+  })
 
-router.afterEach((to) => {
-  document.title = to.meta.title ? `${to.meta.title} · meuSaldo` : 'meuSaldo'
-})
+  router.afterEach((to) => {
+    document.title = to.meta.title ? `${to.meta.title} · meuSaldo` : 'meuSaldo'
+  })
+
+  return router
+}
+
+// Instância usada pela aplicação; testes criam a própria via
+// `createAppRouter()` para isolar guardas e navegação.
+const router = createAppRouter()
 
 export default router

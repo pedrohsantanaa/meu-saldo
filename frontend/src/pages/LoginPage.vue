@@ -1,5 +1,5 @@
 <script setup>
-import { ref } from 'vue'
+import { computed, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 
 import BaseButton from '../components/BaseButton.vue'
@@ -14,6 +14,15 @@ const email = ref('')
 const password = ref('')
 const error = ref('')
 const loading = ref(false)
+
+// Feedback de sessão (T-024/T-065): o usuário entende por que voltou ao
+// login em vez de ver o menu "sem resposta".
+const notice = computed(() => {
+  if (route.query.reason === 'expired') {
+    return 'Sua sessão expirou. Faça login novamente.'
+  }
+  return route.query.redirect ? 'Faça login para continuar.' : ''
+})
 
 async function onSubmit() {
   error.value = ''
@@ -45,6 +54,14 @@ async function onSubmit() {
       <h1 class="mb-1 text-center text-lg">Entrar</h1>
       <p class="mb-6 text-center text-sm text-neutral-500">
         Acesse sua conta para acompanhar suas finanças.
+      </p>
+
+      <p
+        v-if="notice"
+        role="status"
+        class="mb-4 rounded-md bg-attention-light px-3 py-2 text-sm text-attention"
+      >
+        {{ notice }}
       </p>
 
       <form class="space-y-4" @submit.prevent="onSubmit">

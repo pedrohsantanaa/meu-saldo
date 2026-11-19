@@ -11,6 +11,15 @@ export class ApiError extends Error {
   }
 }
 
+// Sessão expirada/revogada (T-065): o handler global limpa a sessão e
+// redireciona ao login. Registrado em `main.js` para evitar import
+// circular com o store de autenticação.
+let unauthorizedHandler = null
+
+export function setUnauthorizedHandler(handler) {
+  unauthorizedHandler = handler
+}
+
 async function request(path, options = {}) {
   const token = localStorage.getItem(TOKEN_KEY)
   const headers = { 'Content-Type': 'application/json', ...options.headers }
@@ -26,12 +35,17 @@ async function request(path, options = {}) {
       // Corpo não é JSON; usa o erro padrão abaixo.
     }
     const error = payload?.error ?? {}
-    throw new ApiError(
+    const apiError = new ApiError(
       error.code ?? 'request_failed',
       error.message ?? `A requisição falhou com status ${response.status}.`,
       response.status,
       error.details ?? null,
     )
+    // 401 fora das rotas de autenticação = sessão inválida/expirada.
+    if (apiError.status === 401 && !path.startsWith('/auth')) {
+      unauthorizedHandler?.()
+    }
+    throw apiError
   }
 
   return response.status === 204 ? null : response.json()
