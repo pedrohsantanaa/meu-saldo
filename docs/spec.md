@@ -593,11 +593,11 @@ categoria para cada cartão e acompanhe o valor gasto e o restante.
     naquele mês (seção 7.2).
 -   Quando não houver gastos, apresentar `R$ 0,00`.
 -   Quando não houver orçamento cadastrado, apresentar "Não definido",
-    sem assumir valor zero (confirmação pendente: DD-10).
+    sem assumir valor zero (decisão DD-10, confirmada na Fase 7).
 -   O restante negativo indica orçamento ultrapassado.
 
-**Pendente de definição:** qual percentual caracteriza "próximo do
-limite" (`design.md` §5.4 sugere 80%).
+**Definido (Fase 7):** o estado "próximo do limite" é atingido com 80% ou
+mais de utilização (`design.md` §5.4), configurável futuramente.
 
 **Critérios de aceitação:** ver AC-063 a AC-076 em `acceptance.md`.
 
@@ -971,7 +971,8 @@ divergências encontradas entre `requirements.md`, `spec.md` e
     `design.md` §5.4 e coberta por AC-063 a AC-076, ausente em
     `spec.md`. Seção 6.13 adicionada; DD-02 foi definida em T-002
     (orçamento segue o ciclo da fatura, pelo mês do vencimento) e DD-10
-    segue pendente.
+    foi definida na Fase 7 (orçamento não cadastrado é exibido como
+    "Não definido", sem assumir zero).
 8.  **Resultado do período:** `spec.md` §7.1 usava "Saldo do período =
     Receitas - Despesas"; `design.md` §11.1 e AC-025 definem "Restante =
     Receitas - Saídas", com investimentos contabilizados nas saídas.

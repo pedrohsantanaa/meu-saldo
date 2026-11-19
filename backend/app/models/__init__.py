@@ -1,5 +1,6 @@
 from app.models.auth_session import AuthSession
 from app.models.base import Base
+from app.models.card_category_budget import CardCategoryBudget
 from app.models.category import Category
 from app.models.credit_card import CreditCard
 from app.models.credit_card_invoice import CreditCardInvoice
@@ -12,6 +13,7 @@ from app.models.user import User
 __all__ = [
     "AuthSession",
     "Base",
+    "CardCategoryBudget",
     "Category",
     "CreditCard",
     "CreditCardInvoice",

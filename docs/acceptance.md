@@ -749,9 +749,8 @@ categorias exibidas, respeitando categorias sem orçamento definido.
 definido pelo produto,\
 **então** a interface deverá indicar o estado correspondente.
 
-**Bloqueio:** o percentual que caracteriza "próximo do limite" permanece
-pendente de confirmação. Não considerar 80% como regra definitiva sem
-aprovação.
+**Definido (Fase 7):** o percentual que caracteriza "próximo do limite"
+foi aprovado em 80% de utilização (configurável futuramente).
 
 ## 14. Interface, usabilidade e responsividade
 
@@ -982,9 +981,10 @@ até que as decisões correspondentes sejam registradas em `spec.md`:
                                                   do MVP e como será
                                                   representado.
 
-  Percentual de alerta do AC-076                  Aprovar o percentual
-  orçamento                                       que caracteriza
-                                                  "próximo do limite".
+  Percentual de alerta do AC-076                  Aprovado na Fase 7: 80%
+  orçamento                                       de utilização
+                                                  (configurável
+                                                  futuramente).
 
   Recorrência de despesas AC-022 e AC-096         Definir se os
   fixas                                           lançamentos serão

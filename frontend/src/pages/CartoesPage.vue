@@ -14,14 +14,15 @@ import BaseBadge from '../components/BaseBadge.vue'
 import BaseButton from '../components/BaseButton.vue'
 import BaseInput from '../components/BaseInput.vue'
 import BaseModal from '../components/BaseModal.vue'
-import BaseSelect from '../components/BaseSelect.vue'
 import BaseTabs from '../components/BaseTabs.vue'
+import BudgetSection from '../components/BudgetSection.vue'
 import ConfirmDialog from '../components/ConfirmDialog.vue'
 import CurrencyInput from '../components/CurrencyInput.vue'
 import EmptyState from '../components/EmptyState.vue'
 import LoadingState from '../components/LoadingState.vue'
 import MonthSelector from '../components/MonthSelector.vue'
 import ProgressBar from '../components/ProgressBar.vue'
+import PurchaseForm from '../components/PurchaseForm.vue'
 import SectionHeader from '../components/SectionHeader.vue'
 import SummaryCard from '../components/SummaryCard.vue'
 import { api } from '../services/api'
@@ -56,13 +57,6 @@ const purchaseModalOpen = ref(false)
 const purchaseEditing = ref(null)
 const purchaseSaving = ref(false)
 const purchaseError = ref('')
-const purchaseForm = reactive({
-  description: '',
-  total_amount: 0,
-  purchase_date: new Date().toISOString().slice(0, 10),
-  category_id: '',
-  notes: '',
-})
 
 const paymentTarget = ref(null)
 const paymentSaving = ref(false)
@@ -88,12 +82,6 @@ const cardGradients = [
 
 const selectedCard = computed(
   () => cards.value.find((card) => card.id === selectedCardId.value) ?? null,
-)
-
-const categoryOptions = computed(() =>
-  categories.value
-    .filter((category) => category.is_active && category.group_type === 'expense')
-    .map((category) => ({ value: String(category.id), label: category.name })),
 )
 
 const monthBounds = computed(() => {
@@ -215,39 +203,18 @@ async function onConfirmToggleCard() {
 function openCreatePurchase() {
   purchaseEditing.value = null
   purchaseError.value = ''
-  Object.assign(purchaseForm, {
-    description: '',
-    total_amount: 0,
-    purchase_date: new Date().toISOString().slice(0, 10),
-    category_id: '',
-    notes: '',
-  })
   purchaseModalOpen.value = true
 }
 
 function openEditPurchase(purchase) {
   purchaseEditing.value = purchase
   purchaseError.value = ''
-  Object.assign(purchaseForm, {
-    description: purchase.description,
-    total_amount: Number(purchase.total_amount),
-    purchase_date: purchase.purchase_date,
-    category_id: String(purchase.category_id),
-    notes: purchase.notes ?? '',
-  })
   purchaseModalOpen.value = true
 }
 
-async function onSavePurchase() {
+async function onSavePurchase(payload) {
   purchaseSaving.value = true
   purchaseError.value = ''
-  const payload = {
-    description: purchaseForm.description,
-    total_amount: purchaseForm.total_amount,
-    purchase_date: purchaseForm.purchase_date,
-    category_id: Number(purchaseForm.category_id),
-    notes: purchaseForm.notes || null,
-  }
   try {
     const base = `/cards/${selectedCardId.value}/purchases`
     if (purchaseEditing.value) {
@@ -606,12 +573,9 @@ onMounted(async () => {
               </div>
             </div>
 
-            <p
-              v-else
-              class="mt-4 rounded-card border border-dashed border-neutral-200 p-6 text-center text-sm text-neutral-500"
-            >
-              O orçamento por categoria será implementado na próxima fase (T-053 a T-059).
-            </p>
+            <div v-else class="mt-4">
+              <BudgetSection :card-id="selectedCardId" :period="period" compact />
+            </div>
           </div>
         </div>
       </div>
@@ -672,46 +636,14 @@ onMounted(async () => {
       :title="purchaseEditing ? 'Editar compra' : 'Nova compra'"
       @update:open="purchaseModalOpen = $event"
     >
-      <form class="space-y-4" @submit.prevent="onSavePurchase">
-        <BaseInput
-          v-model="purchaseForm.description"
-          label="Descrição"
-          placeholder="Ex.: Supermercado, Combustível..."
-          required
-        />
-        <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
-          <CurrencyInput v-model="purchaseForm.total_amount" label="Valor" />
-          <BaseInput
-            v-model="purchaseForm.purchase_date"
-            label="Data da compra"
-            type="date"
-            required
-          />
-        </div>
-        <BaseSelect
-          v-model="purchaseForm.category_id"
-          label="Categoria"
-          :options="categoryOptions"
-          placeholder="Selecione a categoria"
-          required
-        />
-        <BaseInput v-model="purchaseForm.notes" label="Observações" placeholder="Opcional" />
-
-        <p
-          v-if="purchaseError"
-          role="alert"
-          class="rounded-md bg-negative-light px-3 py-2 text-sm text-negative"
-        >
-          {{ purchaseError }}
-        </p>
-
-        <div class="flex justify-end gap-2">
-          <BaseButton variant="secondary" type="button" @click="purchaseModalOpen = false">
-            Cancelar
-          </BaseButton>
-          <BaseButton type="submit" :loading="purchaseSaving">Salvar</BaseButton>
-        </div>
-      </form>
+      <PurchaseForm
+        :categories="categories"
+        :initial="purchaseEditing"
+        :loading="purchaseSaving"
+        :error="purchaseError"
+        @submit="onSavePurchase"
+        @cancel="purchaseModalOpen = false"
+      />
     </BaseModal>
 
     <BaseModal

@@ -635,7 +635,7 @@ front-end.
 **Objetivo:** implementar a funcionalidade baseada na segunda planilha
 enviada.
 
--   [ ] **T-053 \[P0\]** Criar modelo e migração de orçamento por
+-   [x] **T-053 \[P0\]** Criar modelo e migração de orçamento por
     cartão.
     -   Usuário.
     -   Cartão.
@@ -643,36 +643,36 @@ enviada.
     -   Mês de referência.
     -   Valor planejado.
     -   Restrição de unicidade para usuário + cartão + categoria + mês.
--   [ ] **T-054 \[P0\]** Implementar API de consulta de orçamentos.
+-   [x] **T-054 \[P0\]** Implementar API de consulta de orçamentos.
     -   Receber mês e cartão.
     -   Listar categorias orçadas.
     -   Retornar valor planejado, gastos e restante.
     -   Retornar categorias sem orçamento como "Não definido", sem
         assumir zero.
--   [ ] **T-055 \[P0\]** Implementar criação, edição e exclusão de
+-   [x] **T-055 \[P0\]** Implementar criação, edição e exclusão de
     orçamentos.
     -   Validar cartão e categoria pertencentes ao usuário.
     -   Impedir orçamento duplicado para a mesma combinação.
     -   Validar valores não negativos.
--   [ ] **T-056 \[P0\]** Implementar tela de orçamentos.
+-   [x] **T-056 \[P0\]** Implementar tela de orçamentos.
     -   Seleção de mês.
     -   Seleção de cartão.
     -   Tabela com categoria, orçamento, gastos e restante.
     -   Totalizador.
     -   Ação para novo orçamento.
--   [ ] **T-057 \[P0\]** Implementar cálculo de gastos por categoria.
+-   [x] **T-057 \[P0\]** Implementar cálculo de gastos por categoria.
     -   Considerar somente compras do cartão e mês conforme política
         aprovada.
     -   Atualizar totais após inclusão, edição ou exclusão de compra.
     -   Evitar somar pagamento de fatura como nova compra.
--   [ ] **T-058 \[P1\]** Implementar indicadores de utilização.
+-   [x] **T-058 \[P1\]** Implementar indicadores de utilização.
     -   Dentro do orçamento.
     -   Próximo do limite.
     -   Orçamento ultrapassado.
     -   Calcular percentual somente quando houver orçamento maior que
         zero.
     -   Utilizar o percentual de alerta aprovado.
--   [ ] **T-059 \[P1\]** Permitir iniciar compra a partir de uma
+-   [x] **T-059 \[P1\]** Permitir iniciar compra a partir de uma
     categoria orçada.
     -   Abrir formulário com cartão e categoria preenchidos.
     -   Após salvar, atualizar gastos e restante.
@@ -680,6 +680,17 @@ enviada.
 **Critério de conclusão da fase:** para cada cartão e mês, o usuário
 consegue definir orçamento por categoria e acompanhar planejado, gasto e
 restante corretamente.
+
+**Fase 7 concluída:** orçamento por usuário + cartão + mês + categoria
+(unicidade garantida); gastos calculados pelo ciclo da fatura (mês do
+vencimento), sempre derivados das compras — inclusão, edição e exclusão
+de compra atualizam o orçamento automaticamente e o pagamento de fatura
+nunca entra nos gastos. Categoria sem orçamento é exibida como "Não
+definido", sem assumir zero (DD-10 definida). Indicadores de utilização:
+dentro do orçamento, próximo do limite (80% — decisão aprovada na
+Fase 7), totalmente utilizado e ultrapassado. Tela de orçamentos com
+seleção de mês e cartão, totalizador e criação de compra a partir da
+categoria orçada (T-059). Testes: 110 no back-end e 39 no front-end.
 
 ## 13. Fase 8 --- Testes, segurança e qualidade
 

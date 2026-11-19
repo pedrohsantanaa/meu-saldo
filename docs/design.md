@@ -389,8 +389,8 @@ O percentual de utilização poderá ser calculado por:
 Quando o orçamento for zero ou não estiver definido, não calcular
 percentual. Exibir um estado apropriado.
 
-**Pendente de definição:** estabelecer qual percentual caracteriza
-"próximo do limite". Sugestão inicial: 80%, configurável futuramente.
+**Definido (Fase 7):** o estado "próximo do limite" é caracterizado por
+80% ou mais de utilização (decisão do produto), configurável futuramente.
 
 ### 5.5. Categorias
 
@@ -950,7 +950,9 @@ registrado como liquidação e libera limite), DD-06 (o restante é o
 resultado dos lançamentos registrados, não o saldo bancário --- seção
 5.1), DD-07 (categorias padrão totalmente editáveis; lista em
 `spec.md` §6.3) e DD-08 (despesas fixas com lançamento manual mensal,
-sem recorrência automática no MVP). Seguem pendentes: DD-09 e DD-10.
+sem recorrência automática no MVP). DD-10 foi definida na Fase 7 (o
+orçamento não cadastrado é exibido como "Não definido", sem assumir
+valor zero). Segue pendente: DD-09.
 
 ## 16. Estratégia de implementação
 

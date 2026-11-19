@@ -2,7 +2,7 @@
 
 ## Repo status
 
-- Product specs live in `docs/` (plus `docs/interface.png`, the approved prototype); the implementation plan is `docs/tasks.md` (T-001…T-073). **Fases 0–6 (T-001…T-051) are implemented** (foundation, visual identity, auth, categories, transactions, monthly/annual dashboard, credit cards/invoices/limits); **Fases 7–9 remain** (budgets, test/security pass, deployment). Code: `backend/` (FastAPI), `frontend/` (Vue 3 + Vite + Tailwind), `docker-compose.yml`.
+- Product specs live in `docs/` (plus `docs/interface.png`, the approved prototype); the implementation plan is `docs/tasks.md` (T-001…T-073). **Fases 0–7 (T-001…T-059) are implemented** (foundation, visual identity, auth, categories, transactions, monthly/annual dashboard, credit cards/invoices/limits, budgets by card+category); **Fases 8–9 remain** (test/security/usability pass, deployment). Code: `backend/` (FastAPI), `frontend/` (Vue 3 + Vite + Tailwind), `docker-compose.yml`.
 - Layout: `backend/app/{api,core,models,schemas,services,repositories}`, tests in `backend/tests`, migrations in `backend/alembic`; `frontend/src/{components,layouts,pages,router,services,stores,utils}`. See `tasks.md` §4.
 - Stack: Vue 3 + Tailwind + Pinia + vue-router, Python/FastAPI + SQLAlchemy 2 + Alembic, PostgreSQL 16, token auth planned (`design.md` §8.1).
 
@@ -23,6 +23,7 @@ Environment: `docker compose up --build` runs postgres + backend + frontend. If 
 - Auth: `POST /api/auth/register|login|logout`, `GET /api/auth/me`. Private routes must depend on `get_current_user` (`backend/app/api/deps.py`) — it is the **only** source of user scoping (data isolation). Tokens are JWT bound to revocable `auth_sessions` rows (logout revokes immediately). Tests run against in-memory SQLite (no Postgres needed).
 - Financial data: `GET/POST/PUT /api/categories` + `PATCH /api/categories/{id}/status`; `GET/POST/PUT/DELETE /api/transactions`. All queries are scoped by the authenticated user (other users' records → 404). Registering a user seeds the 27 default categories as per-user editable copies (`app/services/seed.py`). Expenses require `expense_type` (fixed/variable) and `payment_method` (dinheiro/pix/debito/outra — **there is no "credito"**: card spending is registered as a card purchase, never as a common transaction).
 - Credit cards (Fase 6): `GET/POST /api/cards`, `GET/PUT /api/cards/{id}`, `PATCH /api/cards/{id}/status` (inactivate, never delete); `GET/POST /api/cards/{id}/purchases` + `GET/PUT/DELETE .../purchases/{pid}`; `GET /api/cards/{id}/invoices` (+ `/invoices/overview`, `/invoices/{iid}`); `POST /api/cards/{id}/invoices/{iid}/payments`. Invoice assignment is a **snapshot** at purchase registration (`app/services/invoice_cycle.py`); the invoice total is derived from its purchases (never materialized); paying an invoice settles it (never creates a `Transaction`) and releases the limit.
+- Budgets (Fase 7): `GET /api/budgets?month=AAAA-MM&card_id=` (rows + totals; categories without budget come as `budget_amount: null` = "Não definido"), `POST /api/budgets`, `PUT/DELETE /api/budgets/{id}` (`app/services/budgets.py`). Spending is always derived from purchases on the invoice due in the month — never materialized; "próximo do limite" threshold is **80%** (approved in Fase 7, `NEAR_LIMIT_PERCENT` in `frontend/src/utils/budget.js`).
 - Dashboard: `GET /api/dashboard/monthly?month=AAAA-MM` and `/api/dashboard/annual?year=AAAA` (`app/services/dashboard.py`). Formulas follow `spec.md` §7.1: `saídas = fixas + variáveis + investimentos`, `restante = receitas − saídas`; monetary values are quantized to 2 decimals. Monthly and annual views must stay consistent.
 
 ## Documents (all in Portuguese, pt-BR)
@@ -48,7 +49,7 @@ Keep doc edits in Portuguese and in character style consistent with the existing
 - **Fixed expenses are entered manually each month (T-007)** — no automatic recurrence in the MVP.
 - **Categories are fully editable (T-008, `spec.md` §6.3)** — including system defaults (create/rename/deactivate/reactivate); default seed list in `spec.md` §6.3 (income / fixed expenses / variable expenses / investments).
 - **Money is decimal**, never float; two decimal places; display as `R$ 1.234,56`. Installments must sum exactly to the purchase total (cent differences handled) (`spec.md` §7.3).
-- **Budget key is `user + card + month + category`** and must be unique; budget is per-card, and the same category can have different limits on different cards. A missing budget shows "Não definido" — never assume zero (`design.md` §5.4, AC-065/AC-072).
+- **Budget key is `user + card + month + category`** and must be unique; budget is per-card, and the same category can have different limits on different cards. A missing budget shows "Não definido" — never assume zero (`design.md` §5.4, AC-065/AC-072). Usage states (T-058): `undefined`/`ok`/`near` (≥ 80%)/`full`/`over`; percentage is only calculated for budget > 0.
 - **Multiple credit cards** per user; a card that is inactive keeps its history but accepts no new purchases.
 - **Monthly + annual overview** are both planned (reconciled in T-001; `design.md` §2.1 corrected): monthly = one month with navigation; annual = 12 months in columns.
 - **Every private record belongs to one user**; all queries/actions must filter by the authenticated user, enforced in the back-end, not just the UI. Admin role must **not** grant access to users' financial data.
@@ -56,7 +57,7 @@ Keep doc edits in Portuguese and in character style consistent with the existing
 
 ## Pending decisions
 
-- Specs contain items marked **"Pendente de definição"** — they are **not** rules: do not implement behavior that depends on them without a product-owner decision (`tasks.md` §1). Fase 0 (T-001…T-008) resolved DP-02…DP-07 and DD-01…DD-08 (plus DP-04/DD-02 in T-002); **DP-08** (password recovery) was approved and implemented in T-026. **Still pending:** DP-01 (shared accounts — out of MVP), DP-09 (data export — future), DD-09 (investment goals), DD-10 (missing budget shown as "Não definido" vs zero), and the "próximo do limite" threshold (`spec.md` §6.13, suggests 80%).
+- Specs contain items marked **"Pendente de definição"** — they are **not** rules: do not implement behavior that depends on them without a product-owner decision (`tasks.md` §1). Fase 0 (T-001…T-008) resolved DP-02…DP-07 and DD-01…DD-08 (plus DP-04/DD-02 in T-002); **DP-08** (password recovery) was approved and implemented in T-026; Fase 7 resolved **DD-10** (missing budget shows "Não definido") and the **"próximo do limite" threshold (80%)**. **Still pending:** DP-01 (shared accounts — out of MVP), DP-09 (data export — future), and DD-09 (investment goals).
 
 ## Conventions in the docs
 
