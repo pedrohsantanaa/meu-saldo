@@ -43,6 +43,7 @@ def create_card(db: Session, user: User, payload: CardCreate) -> dict:
         user_id=user.id,
         name=payload.name.strip(),
         issuer=payload.issuer.strip() if payload.issuer else None,
+        color=payload.color,
         credit_limit=payload.credit_limit,
         closing_day=payload.closing_day,
         due_day=payload.due_day,
@@ -59,6 +60,8 @@ def update_card(db: Session, user: User, card_id: int, payload: CardUpdate) -> d
         card.name = payload.name.strip()
     if payload.issuer is not None:
         card.issuer = payload.issuer.strip() or None
+    if payload.color is not None:
+        card.color = payload.color
     if payload.credit_limit is not None:
         card.credit_limit = payload.credit_limit
     if payload.closing_day is not None:
@@ -101,6 +104,7 @@ def card_payload(db: Session, card: CreditCard) -> dict:
         "id": card.id,
         "name": card.name,
         "issuer": card.issuer,
+        "color": card.color,
         "credit_limit": card.credit_limit,
         "closing_day": card.closing_day,
         "due_day": card.due_day,

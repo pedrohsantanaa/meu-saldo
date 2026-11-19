@@ -16,6 +16,7 @@ import BaseInput from '../components/BaseInput.vue'
 import BaseModal from '../components/BaseModal.vue'
 import BaseTabs from '../components/BaseTabs.vue'
 import BudgetSection from '../components/BudgetSection.vue'
+import ColorPicker from '../components/ColorPicker.vue'
 import ConfirmDialog from '../components/ConfirmDialog.vue'
 import CurrencyInput from '../components/CurrencyInput.vue'
 import EmptyState from '../components/EmptyState.vue'
@@ -27,6 +28,7 @@ import PurchaseForm from '../components/PurchaseForm.vue'
 import SectionHeader from '../components/SectionHeader.vue'
 import SummaryCard from '../components/SummaryCard.vue'
 import { api } from '../services/api'
+import { cardColorGradients, colorLabel, gradientForCard } from '../utils/cardColors'
 import { formatCurrency } from '../utils/formatCurrency'
 import { formatDate } from '../utils/formatDate'
 
@@ -47,9 +49,11 @@ const cardModalOpen = ref(false)
 const cardEditing = ref(null)
 const cardSaving = ref(false)
 const cardError = ref('')
+const colorPickerOpen = ref(false)
 const cardForm = reactive({
   name: '',
   issuer: '',
+  color: 'purple',
   credit_limit: 0,
   closing_day: 1,
   due_day: 10,
@@ -72,14 +76,6 @@ const tabs = [
   { value: 'compras', label: 'Compras' },
   { value: 'orcamento', label: 'Orçamento por Categoria' },
   { value: 'faturas', label: 'Faturas' },
-]
-
-const cardGradients = [
-  'from-purple-500 to-purple-700',
-  'from-blue-500 to-blue-700',
-  'from-orange-400 to-orange-600',
-  'from-emerald-500 to-emerald-700',
-  'from-rose-500 to-rose-700',
 ]
 
 const selectedCard = computed(
@@ -111,7 +107,7 @@ function invoiceMonth(invoice) {
 }
 
 function gradientOf(card) {
-  return cardGradients[card.id % cardGradients.length]
+  return gradientForCard(card)
 }
 
 async function loadCards() {
@@ -168,6 +164,7 @@ function openCreateCard() {
   Object.assign(cardForm, {
     name: '',
     issuer: '',
+    color: 'purple',
     credit_limit: 0,
     closing_day: 1,
     due_day: 10,
@@ -181,6 +178,7 @@ function openEditCard(card) {
   Object.assign(cardForm, {
     name: card.name,
     issuer: card.issuer ?? '',
+    color: card.color ?? 'purple',
     credit_limit: Number(card.credit_limit),
     closing_day: card.closing_day,
     due_day: card.due_day,
@@ -194,6 +192,7 @@ async function onSaveCard() {
   const payload = {
     name: cardForm.name,
     issuer: cardForm.issuer || null,
+    color: cardForm.color,
     credit_limit: cardForm.credit_limit,
     closing_day: Number(cardForm.closing_day),
     due_day: Number(cardForm.due_day),
@@ -620,6 +619,24 @@ onMounted(async () => {
           required
         />
         <BaseInput v-model="cardForm.issuer" label="Emissor" placeholder="Opcional" />
+
+        <div>
+          <p class="text-sm font-medium text-neutral-700">Cor</p>
+          <button
+            type="button"
+            class="mt-1.5 flex w-full items-center gap-3 rounded-md border border-neutral-300 px-3 py-2 text-sm text-neutral-900 hover:border-primary"
+            @click="colorPickerOpen = true"
+          >
+            <span
+              class="h-6 w-10 rounded-md bg-gradient-to-br shadow-card"
+              :class="cardColorGradients[cardForm.color]"
+              aria-hidden="true"
+            />
+            {{ colorLabel(cardForm.color) }}
+            <span class="ml-auto text-xs text-neutral-500">Escolher cor</span>
+          </button>
+        </div>
+
         <CurrencyInput v-model="cardForm.credit_limit" label="Limite total" />
         <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <BaseInput
@@ -655,6 +672,14 @@ onMounted(async () => {
           <BaseButton type="submit" :loading="cardSaving">Salvar</BaseButton>
         </div>
       </form>
+    </BaseModal>
+
+    <BaseModal
+      :open="colorPickerOpen"
+      title="Escolher a cor do cartão"
+      @update:open="colorPickerOpen = $event"
+    >
+      <ColorPicker v-model="cardForm.color" @update:model-value="colorPickerOpen = false" />
     </BaseModal>
 
     <BaseModal

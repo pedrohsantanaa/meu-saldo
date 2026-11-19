@@ -20,7 +20,9 @@ class CreditCard(Base):
     """Cartão de crédito do usuário (T-044).
 
     Não armazena número do cartão, CVV, senha ou credenciais bancárias
-    (spec.md §6.8, AC-051).
+    (`spec.md` §6.8, AC-051). `color` guarda um tom da paleta visual
+    (escolhido pelo usuário) usado no chip do cartão; anulável para
+    compatibilizar cartões cadastrados antes do campo existir.
     """
 
     __tablename__ = "credit_cards"
@@ -31,6 +33,7 @@ class CreditCard(Base):
     )
     name: Mapped[str] = mapped_column(String(80), nullable=False)
     issuer: Mapped[str | None] = mapped_column(String(80), nullable=True)
+    color: Mapped[str | None] = mapped_column(String(20), nullable=True)
     credit_limit: Mapped[Decimal] = mapped_column(Numeric(12, 2), nullable=False)
     closing_day: Mapped[int] = mapped_column(Integer, nullable=False)
     due_day: Mapped[int] = mapped_column(Integer, nullable=False)

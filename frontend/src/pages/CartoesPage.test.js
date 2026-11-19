@@ -151,6 +151,34 @@ describe('CartoesPage', () => {
     expect(payload.due_day).toBe(10)
   })
 
+  it('cadastra um cartão com a cor escolhida no seletor (AC-047)', async () => {
+    api.post.mockResolvedValue(card)
+    const wrapper = await mountPage()
+
+    await wrapper
+      .findAll('button')
+      .find((button) => button.text().includes('Novo Cartão'))
+      .trigger('click')
+    await flushPromises()
+
+    await wrapper
+      .findAll('button')
+      .find((button) => button.text().includes('Escolher cor'))
+      .trigger('click')
+    await flushPromises()
+
+    await wrapper.find('[aria-label="Turquesa"]').trigger('click')
+    await flushPromises()
+
+    const form = wrapper.find('form')
+    await form.findAll('input')[0].setValue('Nubank')
+    await form.trigger('submit')
+    await flushPromises()
+
+    const [, payload] = api.post.mock.calls[0]
+    expect(payload.color).toBe('teal')
+  })
+
   it('registra uma compra pelo formulário (AC-053)', async () => {
     api.post.mockResolvedValue({})
     const wrapper = await mountPage()

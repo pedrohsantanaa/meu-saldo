@@ -630,6 +630,11 @@ orçamento de T-047 será composto a partir das compras na Fase 7.
 Parcelamento fora do MVP (T-052). Testes: 94 no back-end e 24 no
 front-end.
 
+**Melhoria (pós-Fase 8):** a cor do cartão é escolhida pelo usuário no
+cadastro/edição — seletor grande com paleta de 19 tons (`ColorPicker`),
+em vez de gradiente gerado por id; cartões anteriores mantêm o
+gradiente por id até serem editados.
+
 ## 12. Fase 7 --- Orçamentos por cartão e categoria
 
 **Objetivo:** implementar a funcionalidade baseada na segunda planilha

@@ -64,6 +64,30 @@ def test_cadastrar_cartao(client):
     assert [item["id"] for item in listing] == [body["id"]]
 
 
+def test_escolher_cor_do_cartao(client):
+    headers = auth_client(client)
+
+    body = create_card(client, headers, color="teal")
+    assert body["color"] == "teal"
+
+    edited = client.put(
+        f"/api/cards/{body['id']}", json={"color": "rose"}, headers=headers
+    )
+    assert edited.status_code == 200
+    assert edited.json()["color"] == "rose"
+
+
+def test_cor_invalida_e_rejeitada(client):
+    headers = auth_client(client)
+
+    response = client.post(
+        "/api/cards", json=card_payload(color="rainbow"), headers=headers
+    )
+
+    assert response.status_code == 422
+    assert response.json()["error"]["code"] == "validation_error"
+
+
 def test_lista_cartoes_inclui_indicadores_de_limite(client):
     headers = auth_client(client)
     create_card(client, headers)
