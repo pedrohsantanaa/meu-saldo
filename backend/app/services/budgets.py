@@ -30,24 +30,31 @@ from app.models import (
     CreditCardPurchase,
     User,
 )
-from app.schemas.budget import BudgetCreate, BudgetUpdate
+from app.schemas.budget import BudgetCreate, BudgetSeriesCreateCard, BudgetUpdate
 from app.services.cards import get_owned_card, get_owned_category
 
 ZERO = Decimal("0.00")
 CENTS = Decimal("0.01")
 
 
-def _money(value) -> Decimal:
+def money(value) -> Decimal:
     return Decimal(str(value if value is not None else 0)).quantize(
         CENTS, rounding=ROUND_HALF_UP
     )
 
 
-def _month_date(month: str) -> date:
-    return date.fromisoformat(f"{month}-01")
+def month_date(month: str) -> date:
+    try:
+        return date.fromisoformat(f"{month}-01")
+    except ValueError as exc:
+        raise AppError(
+            code="invalid_month",
+            message="Mês inválido. Use o formato AAAA-MM, com mês entre 01 e 12.",
+            http_status=422,
+        ) from exc
 
 
-def _month_str(reference_month: date) -> str:
+def month_str(reference_month: date) -> str:
     return f"{reference_month.year:04d}-{reference_month.month:02d}"
 
 
@@ -58,7 +65,7 @@ def summary(db: Session, user: User, card_id: int, month: str) -> dict:
     orçamento (exibidas como "Não definido").
     """
     get_owned_card(db, user, card_id)
-    reference_month = _month_date(month)
+    reference_month = month_date(month)
 
     budgets = list(
         db.scalars(
@@ -72,34 +79,36 @@ def summary(db: Session, user: User, card_id: int, month: str) -> dict:
         )
     )
     spent_by_category = _spent_by_category(db, user, card_id, reference_month)
+    recurrence_by_id = _recurrence_info(db, budgets)
 
     category_ids = {budget.category_id for budget in budgets} | set(spent_by_category)
-    names = _category_names(db, user, category_ids)
+    names = category_names(db, user, category_ids)
 
     rows = []
     for category_id in sorted(category_ids, key=lambda cid: names[cid]):
         budget = next(
             (item for item in budgets if item.category_id == category_id), None
         )
-        spent = _money(spent_by_category.get(category_id, ZERO))
+        spent = money(spent_by_category.get(category_id, ZERO))
         rows.append(
-            _row_payload(
+            row_payload(
                 budget_id=budget.id if budget else None,
                 category_id=category_id,
                 category_name=names[category_id],
-                budget_amount=_money(budget.budget_amount) if budget else None,
+                budget_amount=money(budget.budget_amount) if budget else None,
                 spent=spent,
+                recurrence=recurrence_by_id.get(budget.id) if budget else None,
             )
         )
 
-    total_budget = _money(
+    total_budget = money(
         sum(
             (row["budget_amount"] if row["budget_amount"] is not None else ZERO)
             for row in rows
         )
     )
-    total_spent = _money(sum(row["spent"] for row in rows))
-    total_remaining = _money(
+    total_spent = money(sum(row["spent"] for row in rows))
+    total_remaining = money(
         sum(
             (row["remaining"] if row["remaining"] is not None else ZERO) for row in rows
         )
@@ -119,8 +128,8 @@ def summary(db: Session, user: User, card_id: int, month: str) -> dict:
 
 def create_budget(db: Session, user: User, payload: BudgetCreate) -> dict:
     get_owned_card(db, user, payload.card_id)
-    category = _validate_category(db, user, payload.category_id)
-    reference_month = _month_date(payload.month)
+    category = validate_expense_category(db, user, payload.category_id)
+    reference_month = month_date(payload.month)
 
     existing = db.scalar(
         select(CardCategoryBudget).where(
@@ -186,7 +195,7 @@ def _get_owned_budget(db: Session, user: User, budget_id: int) -> CardCategoryBu
     return budget
 
 
-def _validate_category(db: Session, user: User, category_id: int) -> Category:
+def validate_expense_category(db: Session, user: User, category_id: int) -> Category:
     """Categoria de despesa, ativa e do usuário (T-055, `spec.md` §6.13)."""
     category = get_owned_category(db, user, category_id)
     if not category.is_active:
@@ -225,7 +234,7 @@ def _spent_by_category(
     return {category_id: Decimal(total) for category_id, total in rows}
 
 
-def _category_names(db: Session, user: User, category_ids: set[int]) -> dict[int, str]:
+def category_names(db: Session, user: User, category_ids: set[int]) -> dict[int, str]:
     rows = db.execute(
         select(Category.id, Category.name).where(
             Category.user_id == user.id, Category.id.in_(category_ids)
@@ -234,22 +243,24 @@ def _category_names(db: Session, user: User, category_ids: set[int]) -> dict[int
     return dict(rows)
 
 
-def _row_payload(
+def row_payload(
     budget_id: int | None,
     category_id: int,
     category_name: str,
     budget_amount: Decimal | None,
     spent: Decimal,
+    recurrence: dict | None = None,
 ) -> dict:
     """Linha do orçamento (AC-068 a AC-072).
 
     Sem orçamento: restante e percentual ficam nulos ("Não definido").
-    Percentual só para orçamento > 0 (T-058).
+    Percentual só para orçamento > 0 (T-058). `recurrence` identifica a
+    série quando a linha foi gerada por recorrência (T-075).
     """
     remaining = None
     usage_percent = None
     if budget_amount is not None:
-        remaining = _money(budget_amount - spent)
+        remaining = money(budget_amount - spent)
         if budget_amount > ZERO:
             usage_percent = round(float(spent / budget_amount * 100), 1)
     return {
@@ -260,6 +271,7 @@ def _row_payload(
         "spent": spent,
         "remaining": remaining,
         "usage_percent": usage_percent,
+        "recurrence": recurrence,
     }
 
 
@@ -267,11 +279,48 @@ def _budget_payload(db: Session, user: User, budget: CardCategoryBudget) -> dict
     spent = _spent_by_category(
         db, user, budget.credit_card_id, budget.reference_month
     ).get(budget.category_id, ZERO)
-    name = _category_names(db, user, {budget.category_id})[budget.category_id]
-    return _row_payload(
+    name = category_names(db, user, {budget.category_id})[budget.category_id]
+    return row_payload(
         budget_id=budget.id,
         category_id=budget.category_id,
         category_name=name,
-        budget_amount=_money(budget.budget_amount),
-        spent=_money(spent),
+        budget_amount=money(budget.budget_amount),
+        spent=money(spent),
+        recurrence=_recurrence_info(db, [budget]).get(budget.id),
     )
+
+
+def _recurrence_info(db: Session, budgets: list) -> dict[int, dict]:
+    # Import local: budget_recurrences importa helpers deste módulo.
+    from app.services import budget_recurrences
+
+    return budget_recurrences.row_recurrences(db, budgets)
+
+
+def create_budget_series(
+    db: Session, user: User, payload: BudgetSeriesCreateCard
+) -> dict:
+    """Cria série de orçamentos por cartão (T-075, AC-116 a AC-118)."""
+    from app.services import budget_recurrences
+
+    record, budgets = budget_recurrences.create_series(
+        db,
+        user,
+        category_id=payload.category_id,
+        month=payload.month,
+        recurrence=payload.recurrence,
+        budget_model=CardCategoryBudget,
+        credit_card_id=payload.card_id,
+    )
+    return {
+        "recurrence": budget_recurrences.recurrence_payload(record),
+        "months": [month_str(budget.reference_month) for budget in budgets],
+        "rows": [_budget_payload(db, user, budget) for budget in budgets],
+    }
+
+
+def delete_budget_series(db: Session, user: User, recurrence_id: int) -> None:
+    """Exclui a série de orçamentos do cartão e suas linhas (AC-119)."""
+    from app.services import budget_recurrences
+
+    budget_recurrences.delete_series(db, user, recurrence_id, general=False)

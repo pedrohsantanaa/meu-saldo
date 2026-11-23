@@ -821,7 +821,57 @@ ciclo; sem divergências além das já explicadas pelas regras definidas
 configurado, backups documentados e fluxos essenciais validados em
 produção.
 
-## 15. Itens fora do MVP
+## 15. Fase 10 --- Orçamento geral, recorrência e compra pelas movimentações
+
+**Objetivo:** atender às decisões do produto de 23/11/2026: orçamento
+para despesas fixas e variáveis fora do cartão, criação de orçamentos
+recorrentes (parcelas e repetição) e registro de compras no cartão pela
+tela de Movimentações. Regras em `spec.md` §6.9 e §6.13; cenários em
+`acceptance.md` (AC-111 a AC-122).
+
+-   [x] **T-074 \[P0\]** Implementar orçamento geral por categoria e
+    mês, sem cartão.
+    -   Modelo `category_budgets` (usuário + categoria + mês único),
+        migração 0009 e endpoints `/api/budgets/general`.
+    -   Gastos derivados das movimentações comuns de despesa lançadas no
+        mês; compras no cartão nunca contam (sem dupla contagem).
+    -   Interface: escopo "Despesas gerais (sem cartão)" em Orçamentos,
+        reutilizando a tabela de orçamento e os estados de utilização.
+-   [x] **T-075 \[P0\]** Implementar recorrência de orçamento.
+    -   Modos "valor total parcelado" (soma exata, centavos absorvidos
+        pela última parcela) e "valor repetido" (N meses; horizonte fixo
+        de 2 a 60 meses, sem repetição indefinida).
+    -   Modelo `budget_recurrences` e coluna `recurrence_id` nas linhas
+        de orçamento, migração 0010 e endpoints
+        `/api/budgets/recurrences` e `/api/budgets/general/recurrences`.
+    -   Criação atômica informando meses em conflito; badge "Parcela
+        X/Y"/"Recorrente"; exclusão da série remove todos os meses
+        gerados; edição/exclusão mês a mês sem propagação. Vale para
+        orçamento por cartão e geral.
+-   [x] **T-076 \[P1\]** Registrar compra no cartão pela tela de
+    Movimentações.
+    -   Formulário de compra com seletor de cartão reutilizado em
+        Movimentações; grava a compra com o ciclo de fatura normal.
+    -   Confirmação com o mês de vencimento da fatura e atalho para
+        Cartões; a compra não aparece como movimentação comum.
+-   [x] **T-077 \[P0\]** Testes das novas regras.
+    -   Back-end: orçamento geral, recorrência (parcelas com soma
+        exata, atomicidade, séries) e compra pelas movimentações.
+    -   Front-end: modos do formulário de orçamento, escopo geral,
+        badge/exclusão de série e fluxo de compra em Movimentações.
+-   [x] **T-078 \[P0\]** Atualizar documentação.
+    -   `spec.md` §6.9 e §6.13, `acceptance.md` (AC-111 a AC-122) e
+        `AGENTS.md`.
+
+**Critério de conclusão da fase:** os três fluxos disponíveis na
+interface, testes de back-end e front-end verdes e documentação
+atualizada.
+
+**Observação:** as parcelas de orçamento (T-075) não alteram a decisão
+T-005 (compras parceladas continuam fora do MVP) nem a T-007/DD-08
+(despesas fixas seguem com lançamento manual mensal).
+
+## 16. Itens fora do MVP
 
 Não implementar nesta primeira entrega, salvo decisão explícita
 posterior:
@@ -836,7 +886,7 @@ posterior:
 -   Metas avançadas e relatórios analíticos avançados.
 -   Exportação de dados, caso permaneça como funcionalidade futura.
 
-## 16. Ordem recomendada de execução
+## 17. Ordem recomendada de execução
 
 A ordem abaixo considera dependências técnicas e entrega de valor. As
 fases podem ser divididas em sprints menores.
@@ -875,7 +925,11 @@ fases podem ser divididas em sprints menores.
                                                      internet.
   --------------------------------------------------------------------------
 
-## 17. Definição de pronto (Definition of Done)
+Após a publicação do MVP, a **Fase 10** (T-074 a T-078) expandiu
+orçamentos e compras: orçamento geral sem cartão, recorrência de
+orçamento e registro de compras no cartão pela tela de Movimentações.
+
+## 18. Definição de pronto (Definition of Done)
 
 Uma tarefa poderá ser considerada concluída quando:
 
@@ -890,7 +944,7 @@ Uma tarefa poderá ser considerada concluída quando:
 -   [ ] A documentação foi atualizada quando necessário.
 -   [ ] A tarefa foi revisada e não introduz regressões conhecidas.
 
-## 18. Orientações para desenvolvimento com IA
+## 19. Orientações para desenvolvimento com IA
 
 Ao utilizar uma IA de programação para implementar o meuSaldo:
 

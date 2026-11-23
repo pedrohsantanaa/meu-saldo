@@ -7,11 +7,17 @@ from app.models import User
 from app.schemas.budget import (
     MONTH_PATTERN,
     BudgetCreate,
+    BudgetCreateGeneral,
+    BudgetRecurrenceCreated,
     BudgetRow,
+    BudgetSeriesCreate,
+    BudgetSeriesCreateCard,
     BudgetSummary,
+    BudgetSummaryGeneral,
     BudgetUpdate,
 )
 from app.services import budgets as budgets_service
+from app.services import general_budgets as general_budgets_service
 
 router = APIRouter(prefix="/budgets", tags=["orçamentos"])
 
@@ -33,6 +39,91 @@ def create_budget(
     db: Session = Depends(get_db),
 ) -> dict:
     return budgets_service.create_budget(db, current_user, payload)
+
+
+@router.post(
+    "/recurrences",
+    response_model=BudgetRecurrenceCreated,
+    status_code=status.HTTP_201_CREATED,
+)
+def create_budget_recurrence(
+    payload: BudgetSeriesCreateCard,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+) -> dict:
+    return budgets_service.create_budget_series(db, current_user, payload)
+
+
+@router.delete("/recurrences/{recurrence_id}", status_code=status.HTTP_204_NO_CONTENT)
+def delete_budget_recurrence(
+    recurrence_id: int,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+) -> None:
+    budgets_service.delete_budget_series(db, current_user, recurrence_id)
+
+
+@router.get("/general", response_model=BudgetSummaryGeneral)
+def list_general_budgets(
+    month: str = Query(pattern=MONTH_PATTERN),
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+) -> dict:
+    return general_budgets_service.summary(db, current_user, month)
+
+
+@router.post(
+    "/general", response_model=BudgetRow, status_code=status.HTTP_201_CREATED
+)
+def create_general_budget(
+    payload: BudgetCreateGeneral,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+) -> dict:
+    return general_budgets_service.create_budget(db, current_user, payload)
+
+
+@router.post(
+    "/general/recurrences",
+    response_model=BudgetRecurrenceCreated,
+    status_code=status.HTTP_201_CREATED,
+)
+def create_general_budget_recurrence(
+    payload: BudgetSeriesCreate,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+) -> dict:
+    return general_budgets_service.create_budget_series(db, current_user, payload)
+
+
+@router.delete(
+    "/general/recurrences/{recurrence_id}", status_code=status.HTTP_204_NO_CONTENT
+)
+def delete_general_budget_recurrence(
+    recurrence_id: int,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+) -> None:
+    general_budgets_service.delete_budget_series(db, current_user, recurrence_id)
+
+
+@router.put("/general/{budget_id}", response_model=BudgetRow)
+def update_general_budget(
+    budget_id: int,
+    payload: BudgetUpdate,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+) -> dict:
+    return general_budgets_service.update_budget(db, current_user, budget_id, payload)
+
+
+@router.delete("/general/{budget_id}", status_code=status.HTTP_204_NO_CONTENT)
+def delete_general_budget(
+    budget_id: int,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+) -> None:
+    general_budgets_service.delete_budget(db, current_user, budget_id)
 
 
 @router.put("/{budget_id}", response_model=BudgetRow)

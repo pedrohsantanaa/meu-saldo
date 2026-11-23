@@ -53,6 +53,12 @@ class CardCategoryBudget(Base):
     )
     reference_month: Mapped[date] = mapped_column(nullable=False)
     budget_amount: Mapped[Decimal] = mapped_column(Numeric(12, 2), nullable=False)
+    recurrence_id: Mapped[int | None] = mapped_column(
+        Integer,
+        ForeignKey("budget_recurrences.id", ondelete="CASCADE"),
+        nullable=True,
+        index=True,
+    )
     created_at: Mapped[datetime] = mapped_column(
         DateTime, nullable=False, server_default=func.now()
     )

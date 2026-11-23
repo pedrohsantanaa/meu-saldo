@@ -5,10 +5,11 @@ import { api } from '../services/api'
 import MovimentacoesPage from './MovimentacoesPage.vue'
 
 const routeQuery = vi.hoisted(() => ({}))
+const routerPush = vi.hoisted(() => vi.fn())
 
 vi.mock('vue-router', () => ({
   useRoute: () => ({ query: routeQuery }),
-  useRouter: () => ({ push: vi.fn() }),
+  useRouter: () => ({ push: routerPush }),
 }))
 
 vi.mock('../services/api', () => ({
@@ -98,5 +99,82 @@ describe('MovimentacoesPage (fluxos essenciais, T-064)', () => {
     expect(payload.payment_method).toBe('pix')
     expect(payload.amount).toBe(385.26)
     expect(payload.category_id).toBe(2)
+  })
+
+  it('registra compra no cartão pela tela de movimentações (AC-121)', async () => {
+    api.get.mockImplementation((path) => {
+      if (path === '/categories') return Promise.resolve(categories)
+      if (path === '/cards') return Promise.resolve([{ id: 5, name: 'Nubank' }])
+      return Promise.resolve([])
+    })
+    api.post.mockResolvedValue({
+      id: 9,
+      credit_card_id: 5,
+      invoice_id: 2,
+      invoice_reference_month: '2026-12-01',
+    })
+    const wrapper = await mountPage()
+
+    const openButton = wrapper
+      .findAll('button')
+      .find((button) => button.text().includes('Nova Compra no Cartão'))
+    await openButton.trigger('click')
+    await flushPromises()
+
+    const form = wrapper.find('form')
+    await form.findAll('select')[0].setValue('5')
+    await form.findAll('select')[1].setValue('2')
+    await form.findAll('input')[0].setValue('Mercado')
+    await form.trigger('submit')
+    await flushPromises()
+
+    const [path, payload] = api.post.mock.calls[0]
+    expect(path).toBe('/cards/5/purchases')
+    // O cartão vai na URL; o corpo segue o schema de compra.
+    expect('card_id' in payload).toBe(false)
+    expect(payload.description).toBe('Mercado')
+    expect(payload.category_id).toBe(2)
+
+    // Confirmação com a fatura em que a compra entra (AC-121).
+    expect(wrapper.text()).toContain(
+      'Compra registrada na fatura de Dezembro/2026 do cartão Nubank',
+    )
+
+    await wrapper
+      .findAll('button')
+      .find((button) => button.text().includes('Ver em Cartões'))
+      .trigger('click')
+    expect(routerPush).toHaveBeenCalledWith('/cartoes')
+  })
+
+  it('compra no cartão não vira movimentação comum (AC-122)', async () => {
+    api.get.mockImplementation((path) => {
+      if (path === '/categories') return Promise.resolve(categories)
+      if (path === '/cards') return Promise.resolve([{ id: 5, name: 'Nubank' }])
+      return Promise.resolve([])
+    })
+    api.post.mockResolvedValue({
+      id: 9,
+      credit_card_id: 5,
+      invoice_id: 2,
+      invoice_reference_month: '2026-12-01',
+    })
+    const wrapper = await mountPage()
+
+    await wrapper
+      .findAll('button')
+      .find((button) => button.text().includes('Nova Compra no Cartão'))
+      .trigger('click')
+    await flushPromises()
+
+    const form = wrapper.find('form')
+    await form.findAll('select')[0].setValue('5')
+    await form.findAll('select')[1].setValue('2')
+    await form.trigger('submit')
+    await flushPromises()
+
+    // AC-122: o único POST é a compra no cartão — nunca /transactions.
+    expect(api.post).toHaveBeenCalledTimes(1)
+    expect(api.post.mock.calls[0][0]).toBe('/cards/5/purchases')
   })
 })

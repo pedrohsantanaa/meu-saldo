@@ -40,4 +40,5 @@ class PurchaseRead(BaseModel):
     total_amount: Decimal
     installments_count: int
     notes: str | None
+    invoice_reference_month: date | None = None
     created_at: datetime

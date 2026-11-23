@@ -1,5 +1,5 @@
 <script setup>
-import { reactive, watch } from 'vue'
+import { computed, reactive, watch } from 'vue'
 
 import BaseButton from './BaseButton.vue'
 import BaseInput from './BaseInput.vue'
@@ -8,6 +8,7 @@ import CurrencyInput from './CurrencyInput.vue'
 
 const props = defineProps({
   categories: { type: Array, default: () => [] },
+  cards: { type: Array, default: () => [] },
   initial: { type: Object, default: null },
   loading: { type: Boolean, default: false },
   error: { type: String, default: '' },
@@ -16,6 +17,7 @@ const props = defineProps({
 const emit = defineEmits(['submit', 'cancel'])
 
 const form = reactive({
+  card_id: '',
   description: '',
   total_amount: 0,
   purchase_date: new Date().toISOString().slice(0, 10),
@@ -42,19 +44,37 @@ const categoryOptions = props.categories
   .filter((category) => category.is_active && category.group_type === 'expense')
   .map((category) => ({ value: String(category.id), label: category.name }))
 
+const cardOptions = computed(() =>
+  props.cards.map((card) => ({ value: String(card.id), label: card.name })),
+)
+
+const withCardSelect = computed(() => props.cards.length > 0)
+
 function onSubmit() {
-  emit('submit', {
+  const payload = {
     description: form.description,
     total_amount: form.total_amount,
     purchase_date: form.purchase_date,
     category_id: Number(form.category_id),
     notes: form.notes || null,
-  })
+  }
+  // Com seletor de cartão (Movimentações), o cartão faz parte do payload;
+  // sem ele, o cartão vem do contexto (tela de Cartões/Orçamentos).
+  if (withCardSelect.value) payload.card_id = Number(form.card_id)
+  emit('submit', payload)
 }
 </script>
 
 <template>
   <form class="space-y-4" @submit.prevent="onSubmit">
+    <BaseSelect
+      v-if="withCardSelect"
+      v-model="form.card_id"
+      label="Cartão"
+      :options="cardOptions"
+      placeholder="Selecione o cartão"
+      required
+    />
     <BaseInput
       v-model="form.description"
       label="Descrição"

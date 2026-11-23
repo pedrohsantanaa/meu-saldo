@@ -1,5 +1,6 @@
 from datetime import date, datetime
 from decimal import Decimal
+from typing import TYPE_CHECKING
 
 from sqlalchemy import (
     DateTime,
@@ -11,9 +12,12 @@ from sqlalchemy import (
     func,
     text,
 )
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.models.base import Base
+
+if TYPE_CHECKING:
+    from app.models.credit_card_invoice import CreditCardInvoice
 
 
 class CreditCardPurchase(Base):
@@ -70,3 +74,16 @@ class CreditCardPurchase(Base):
     updated_at: Mapped[datetime] = mapped_column(
         DateTime, nullable=False, server_default=func.now(), onupdate=func.now()
     )
+
+    invoice: Mapped["CreditCardInvoice"] = relationship(lazy="joined")
+
+    @property
+    def invoice_reference_month(self) -> date | None:
+        """Mês de referência (vencimento) da fatura da compra.
+
+        Exibido pela interface para confirmar em que fatura a compra
+        entra (T-076); carregado junto da consulta (lazy="joined").
+        """
+        if self.invoice is None:
+            return None
+        return self.invoice.reference_month

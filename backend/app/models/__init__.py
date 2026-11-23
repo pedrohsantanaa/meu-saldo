@@ -1,7 +1,9 @@
 from app.models.auth_session import AuthSession
 from app.models.base import Base
+from app.models.budget_recurrence import BudgetRecurrence
 from app.models.card_category_budget import CardCategoryBudget
 from app.models.category import Category
+from app.models.category_budget import CategoryBudget
 from app.models.credit_card import CreditCard
 from app.models.credit_card_invoice import CreditCardInvoice
 from app.models.credit_card_invoice_payment import CreditCardInvoicePayment
@@ -13,8 +15,10 @@ from app.models.user import User
 __all__ = [
     "AuthSession",
     "Base",
+    "BudgetRecurrence",
     "CardCategoryBudget",
     "Category",
+    "CategoryBudget",
     "CreditCard",
     "CreditCardInvoice",
     "CreditCardInvoicePayment",

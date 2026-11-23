@@ -52,6 +52,13 @@ def test_registrar_compra_valida(client, db_session_factory):
     assert body["total_amount"] == "150.00"
     assert body["installments_count"] == 1
 
+    # T-076: a resposta informa o mês de referência da fatura.
+    assert body["invoice_reference_month"] == "2026-12-01"
+    invoice = client.get(
+        f"/api/cards/{card['id']}/invoices/{body['invoice_id']}", headers=headers
+    ).json()
+    assert body["invoice_reference_month"] == invoice["reference_month"]
+
 
 def test_compra_antes_do_fechamento_entra_na_fatura_do_ciclo(
     client, db_session_factory

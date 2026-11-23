@@ -67,4 +67,34 @@ describe('PurchaseForm', () => {
 
     expect(wrapper.emitted('cancel')).toHaveLength(1)
   })
+
+  it('exibe seletor de cartão e envia o cartão escolhido (AC-121)', async () => {
+    const wrapper = mount(PurchaseForm, {
+      props: { categories, cards: [{ id: 5, name: 'Nubank' }] },
+    })
+
+    const selects = wrapper.findAll('select')
+    const cardOptions = selects[0].findAll('option').map((option) => option.text())
+    expect(cardOptions).toContain('Nubank')
+
+    await selects[0].setValue('5')
+    await selects[1].setValue('1')
+    await wrapper.findAll('input')[0].setValue('Mercado')
+    await wrapper.find('form').trigger('submit')
+
+    const [payload] = wrapper.emitted('submit')[0]
+    expect(payload.card_id).toBe(5)
+    expect(payload.category_id).toBe(1)
+  })
+
+  it('sem cartões, não envia card_id (contexto de Cartões/Orçamentos)', async () => {
+    const wrapper = mount(PurchaseForm, { props: { categories } })
+
+    await wrapper.findAll('input')[0].setValue('Mercado')
+    await wrapper.find('select').setValue('1')
+    await wrapper.find('form').trigger('submit')
+
+    const [payload] = wrapper.emitted('submit')[0]
+    expect('card_id' in payload).toBe(false)
+  })
 })

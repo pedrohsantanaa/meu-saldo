@@ -11,7 +11,7 @@ flutuante e quantizados em duas casas (`spec.md` §7.3).
 
 from decimal import Decimal
 
-from app.services.budgets import _row_payload
+from app.services.budgets import row_payload
 from app.services.dashboard import _money
 
 from .test_card_purchases import category_id, create_purchase, setup_card
@@ -51,7 +51,7 @@ def test_money_quantiza_para_duas_casas_com_arredondamento_banco_centavos():
 
 
 def test_linha_de_orcamento_aplica_restante_e_percentual():
-    row = _row_payload(
+    row = row_payload(
         budget_id=1,
         category_id=2,
         category_name="Gasolina",
@@ -64,7 +64,7 @@ def test_linha_de_orcamento_aplica_restante_e_percentual():
 
 
 def test_linha_de_orcamento_com_restante_negativo():
-    row = _row_payload(
+    row = row_payload(
         budget_id=1,
         category_id=2,
         category_name="Gasolina",

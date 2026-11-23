@@ -642,6 +642,23 @@ gerar nova despesa de consumo.
 **então** a operação deverá ser permitida para categorias padrão e
 próprias, preservando o histórico dos lançamentos associados.
 
+### AC-121 --- Registrar compra no cartão pelas Movimentações \[P0\]
+
+**Dado** que o usuário possui cartões cadastrados,\
+**quando** registrar uma compra no cartão pela tela de Movimentações,
+informando cartão, categoria, data, descrição e valor,\
+**então** a compra deverá ser gravada como compra do cartão escolhido,
+entrar na fatura do ciclo conforme as regras de fechamento e ser
+confirmada na interface com o mês de vencimento da fatura.
+
+### AC-122 --- Compra pelas Movimentações não vira movimentação comum \[P0\]
+
+**Dado** que uma compra foi registrada pela tela de Movimentações,\
+**quando** consultar as movimentações e os indicadores do período,\
+**então** a compra não deverá aparecer como movimentação comum nem ser
+contada em duplicidade — ela conta uma única vez, na fatura do ciclo
+(`spec.md` §7.2).
+
 ## 13. Orçamentos por cartão e categoria
 
 ### AC-063 --- Selecionar mês e cartão \[P0\]
@@ -751,6 +768,86 @@ definido pelo produto,\
 
 **Definido (Fase 7):** o percentual que caracteriza "próximo do limite"
 foi aprovado em 80% de utilização (configurável futuramente).
+
+### AC-111 --- Criar orçamento geral sem cartão \[P0\]
+
+**Dado** que o usuário está em Orçamentos com o escopo "Despesas gerais
+(sem cartão)",\
+**quando** selecionar uma categoria de despesa, o mês e informar o valor
+planejado,\
+**então** o orçamento deverá ser criado para a combinação de usuário,
+categoria e mês, sem vinculação a cartão.
+
+### AC-112 --- Gastos do orçamento geral seguem as movimentações comuns \[P0\]
+
+**Dado** que existe orçamento geral para uma categoria e movimentações
+comuns de despesa lançadas no mês,\
+**quando** o orçamento geral for consultado,\
+**então** os gastos deverão somar as movimentações comuns da categoria
+lançadas naquele mês, e o restante deverá ser recalculado a cada
+inclusão, edição ou exclusão de movimentação.
+
+### AC-113 --- Categoria sem orçamento geral exibe "Não definido" \[P1\]
+
+**Dado** que existe movimentação de despesa em uma categoria sem
+orçamento geral no mês,\
+**quando** o orçamento geral for consultado,\
+**então** a categoria deverá aparecer como "Não definido", sem assumir
+valor zero.
+
+### AC-114 --- Compras no cartão não contam no orçamento geral \[P0\]
+
+**Dado** que existem compras no cartão atribuídas a faturas com
+vencimento no mês,\
+**quando** o orçamento geral for consultado,\
+**então** essas compras não deverão somar nos gastos do orçamento geral
+(elas contam apenas nos orçamentos por cartão, seguindo o ciclo da
+fatura — sem dupla contagem).
+
+### AC-115 --- Orçamentos gerais são isolados por usuário \[P0\]
+
+**Dado** que dois usuários possuem contas distintas,\
+**quando** um consultar, editar ou excluir orçamentos gerais,\
+**então** somente os próprios registros deverão ser visíveis e
+alteráveis.
+
+### AC-116 --- Orçamento parcelado com soma exata \[P0\]
+
+**Dado** que o usuário cria um orçamento com valor total parcelado em N
+meses,\
+**quando** o sistema gerar as linhas mensais,\
+**então** cada mês deverá receber uma parcela e a soma das parcelas
+deverá corresponder exatamente ao valor total, com os centavos de
+arredondamento absorvidos pela última parcela.
+
+### AC-117 --- Orçamento com valor repetido por N meses \[P0\]
+
+**Dado** que o usuário cria um orçamento com valor mensal repetido por N
+meses a partir do mês selecionado,\
+**quando** o sistema gerar as linhas mensais,\
+**então** cada mês do horizonte deverá receber o valor mensal informado.
+
+### AC-118 --- Criação de série é atômica \[P0\]
+
+**Dado** que algum mês do horizonte da série já possui orçamento para a
+mesma categoria e escopo,\
+**quando** o usuário tentar criar a série,\
+**então** nada deverá ser criado e o sistema deverá informar os meses em
+conflito.
+
+### AC-119 --- Excluir série remove todos os meses gerados \[P0\]
+
+**Dado** que existe uma série de orçamentos com meses gerados,\
+**quando** o usuário excluir a série e confirmar a ação,\
+**então** todas as linhas geradas pela série deverão ser removidas.
+
+### AC-120 --- Editar mês da série afeta somente aquele mês \[P1\]
+
+**Dado** que uma linha de orçamento pertence a uma série,\
+**quando** o usuário editar ou excluir somente aquele mês,\
+**então** os demais meses da série não deverão ser alterados e a linha
+deverá indicar a posição na série (por exemplo, "Parcela 2/6" ou
+"Recorrente").
 
 ## 14. Interface, usabilidade e responsividade
 

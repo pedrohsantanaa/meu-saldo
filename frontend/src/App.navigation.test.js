@@ -61,6 +61,13 @@ function mockApi() {
         },
       })
     }
+    if (path.startsWith('/budgets')) {
+      return Promise.resolve({
+        month: '2026-11',
+        rows: [],
+        totals: { budget_amount: '0.00', spent: '0.00', remaining: '0.00' },
+      })
+    }
     return Promise.resolve([])
   })
 }

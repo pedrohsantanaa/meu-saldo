@@ -1,8 +1,9 @@
 <script setup>
 import { computed, onMounted, ref, watch } from 'vue'
-import { useRoute } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import {
   ArrowDownTrayIcon,
+  CreditCardIcon,
   MagnifyingGlassIcon,
   PencilSquareIcon,
   PlusIcon,
@@ -12,6 +13,7 @@ import {
 import BaseBadge from '../components/BaseBadge.vue'
 import BaseButton from '../components/BaseButton.vue'
 import BaseInput from '../components/BaseInput.vue'
+import BaseMessage from '../components/BaseMessage.vue'
 import BaseModal from '../components/BaseModal.vue'
 import BaseSelect from '../components/BaseSelect.vue'
 import ConfirmDialog from '../components/ConfirmDialog.vue'
@@ -19,11 +21,13 @@ import EmptyState from '../components/EmptyState.vue'
 import LoadErrorState from '../components/LoadErrorState.vue'
 import LoadingState from '../components/LoadingState.vue'
 import MonthSelector from '../components/MonthSelector.vue'
+import PurchaseForm from '../components/PurchaseForm.vue'
 import SectionHeader from '../components/SectionHeader.vue'
 import TransactionForm from '../components/TransactionForm.vue'
 import { api } from '../services/api'
 import { formatCurrency } from '../utils/formatCurrency'
 import { formatDate } from '../utils/formatDate'
+import { formatMonthYear } from '../utils/period'
 
 const period = ref(new Date())
 const search = ref('')
@@ -31,9 +35,11 @@ const typeFilter = ref('')
 const categoryFilter = ref('')
 const paymentFilter = ref('')
 const route = useRoute()
+const router = useRouter()
 
 const movements = ref([])
 const categories = ref([])
+const cards = ref([])
 const loading = ref(true)
 const error = ref('')
 
@@ -42,6 +48,11 @@ const editing = ref(null)
 const saving = ref(false)
 const formError = ref('')
 const confirmTarget = ref(null)
+
+const purchaseModalOpen = ref(false)
+const purchaseSaving = ref(false)
+const purchaseError = ref('')
+const purchaseNotice = ref('')
 
 const typeOptions = [
   { value: 'income', label: 'Receita' },
@@ -126,6 +137,7 @@ watch(search, load)
 function openCreate() {
   editing.value = null
   formError.value = ''
+  purchaseNotice.value = ''
   modalOpen.value = true
 }
 
@@ -159,8 +171,43 @@ async function onConfirmDelete() {
   await load()
 }
 
+function openPurchaseCreate() {
+  purchaseError.value = ''
+  purchaseNotice.value = ''
+  purchaseModalOpen.value = true
+}
+
+function parseMonth(month) {
+  const [year, monthNumber] = month.split('-').map(Number)
+  return new Date(year, monthNumber - 1, 1)
+}
+
+function cardName(cardId) {
+  return cards.value.find((card) => card.id === cardId)?.name ?? ''
+}
+
+// T-076: compra no cartão registrada pela tela de Movimentações. A
+// compra segue o ciclo da fatura (não vira movimentação comum) e por
+// isso a lista de movimentações não muda.
+async function onSavePurchase(payload) {
+  purchaseSaving.value = true
+  purchaseError.value = ''
+  const { card_id: cardId, ...purchase } = payload
+  try {
+    const body = await api.post(`/cards/${cardId}/purchases`, purchase)
+    purchaseModalOpen.value = false
+    const invoiceMonth = formatMonthYear(parseMonth(body.invoice_reference_month))
+    purchaseNotice.value = `Compra registrada na fatura de ${invoiceMonth} do cartão ${cardName(cardId)}. Acompanhe em Cartões.`
+  } catch (err) {
+    purchaseError.value = err.message || 'Não foi possível salvar a compra.'
+  } finally {
+    purchaseSaving.value = false
+  }
+}
+
 onMounted(async () => {
   categories.value = await api.get('/categories')
+  cards.value = await api.get('/cards')
   await load()
   if (route.query.novo) {
     openCreate()
@@ -176,12 +223,29 @@ onMounted(async () => {
           <ArrowDownTrayIcon class="h-4 w-4" aria-hidden="true" />
           Exportar
         </BaseButton>
+        <BaseButton
+          v-if="cards.length > 0"
+          variant="secondary"
+          @click="openPurchaseCreate"
+        >
+          <CreditCardIcon class="h-4 w-4" aria-hidden="true" />
+          Nova Compra no Cartão
+        </BaseButton>
         <BaseButton @click="openCreate">
           <PlusIcon class="h-4 w-4" aria-hidden="true" />
           Nova Movimentação
         </BaseButton>
       </template>
     </SectionHeader>
+
+    <BaseMessage v-if="purchaseNotice" type="success" class="mb-4">
+      <div class="flex items-center justify-between gap-3">
+        <p>{{ purchaseNotice }}</p>
+        <BaseButton size="sm" variant="secondary" @click="router.push('/cartoes')">
+          Ver em Cartões
+        </BaseButton>
+      </div>
+    </BaseMessage>
 
     <div class="mb-4 flex flex-wrap items-center gap-3">
       <MonthSelector v-model="period" />
@@ -304,6 +368,25 @@ onMounted(async () => {
         @submit="onSave"
         @cancel="modalOpen = false"
       />
+    </BaseModal>
+
+    <BaseModal
+      :open="purchaseModalOpen"
+      title="Nova compra no cartão"
+      @update:open="purchaseModalOpen = $event"
+    >
+      <PurchaseForm
+        :categories="categories"
+        :cards="cards"
+        :loading="purchaseSaving"
+        :error="purchaseError"
+        @submit="onSavePurchase"
+        @cancel="purchaseModalOpen = false"
+      />
+      <p class="mt-3 text-xs text-neutral-400">
+        A compra entra na fatura do ciclo do cartão e aparece em Cartões — não
+        é uma movimentação comum.
+      </p>
     </BaseModal>
 
     <ConfirmDialog

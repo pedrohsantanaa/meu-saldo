@@ -481,6 +481,14 @@ deverão ser definidos a distribuição de centavos entre as parcelas e a
 atribuição de cada parcela à sua fatura (AC-061 cobre o comportamento
 condicional).
 
+**Definido (Fase 10, T-076):** a compra também pode ser registrada pela
+tela de Movimentações. O formulário solicita o cartão e grava uma compra
+no cartão — mesmas regras, mesmo ciclo de fatura e mesmo impacto no
+limite da tela de Cartões. A compra não gera movimentação comum e não
+aparece no histórico de movimentações (sem dupla contagem, seção 7.2);
+a interface confirma em que fatura a compra entrou (pelo mês de
+vencimento) e direciona para Cartões.
+
 **Critérios de aceitação:**
 
 -   Uma compra válida é associada ao cartão e aparece na fatura correta.
@@ -599,7 +607,41 @@ categoria para cada cartão e acompanhe o valor gasto e o restante.
 **Definido (Fase 7):** o estado "próximo do limite" é atingido com 80% ou
 mais de utilização (`design.md` §5.4), configurável futuramente.
 
-**Critérios de aceitação:** ver AC-063 a AC-076 em `acceptance.md`.
+**Definido (Fase 10, T-074):** o orçamento também pode ser definido sem
+vinculação a cartão, para acompanhar despesas fixas e variáveis pagas
+fora do cartão:
+
+-   A combinação usuário + categoria + mês é única.
+-   Os gastos do mês somam as movimentações comuns de despesa da
+    categoria lançadas no mês (seção 7.2). Compras no cartão não contam
+    neste orçamento: elas seguem o ciclo da fatura nos orçamentos por
+    cartão.
+-   Despesas fixas e variáveis usam o mesmo mecanismo, conforme o grupo
+    da categoria; somente categorias de despesa aceitam orçamento.
+-   "Não definido", restante, percentual e estados de utilização seguem
+    as mesmas regras do orçamento por cartão.
+
+**Definido (Fase 10, T-075):** orçamentos podem ser criados com
+recorrência de horizonte fixo (por cartão ou gerais):
+
+-   **Valor total parcelado:** o valor informado é dividido em N
+    parcelas mensais, com soma exata — a última parcela absorve os
+    centavos de arredondamento (seção 7.3).
+-   **Valor repetido:** o valor mensal informado se repete por N meses.
+-   O mês inicial é o mês selecionado e o horizonte é sempre fixo (2 a
+    60 meses), sem repetição indefinida.
+-   A criação é atômica: se algum mês da série já possuir orçamento do
+    mesmo escopo e categoria, nada é criado e os meses em conflito são
+    informados.
+-   Cada mês gerado é uma linha comum, editável e removível mês a mês,
+    sem propagação para os demais meses; a exclusão da série remove
+    todas as linhas geradas.
+-   As parcelas de orçamento não se confundem com o parcelamento de
+    compras (T-005, continua fora do MVP) nem com a recorrência de
+    despesas fixas (T-007/DD-08, lançamento manual permanece).
+
+**Critérios de aceitação:** ver AC-063 a AC-076 e AC-111 a AC-122 em
+`acceptance.md`.
 
 ## 7. Regras de cálculo financeiro
 
