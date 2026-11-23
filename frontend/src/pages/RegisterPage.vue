@@ -44,13 +44,16 @@ async function onSubmit() {
 <template>
   <div class="flex min-h-screen items-center justify-center bg-neutral-50 p-4">
     <div class="w-full max-w-sm rounded-card border border-neutral-200 bg-white p-6 shadow-panel">
-      <div class="mb-6 flex items-center justify-center gap-2">
-        <svg class="h-8 w-8" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-          <rect x="3" y="12" width="4" height="8" rx="1" class="fill-action" />
-          <rect x="10" y="8" width="4" height="12" rx="1" class="fill-action" />
-          <rect x="17" y="4" width="4" height="16" rx="1" class="fill-action" />
-        </svg>
-        <span class="text-2xl font-semibold text-neutral-900">meuSaldo</span>
+      <div class="mb-6 flex flex-col items-center justify-center gap-1">
+        <div class="flex items-center gap-2">
+          <svg class="h-8 w-8" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+            <rect x="3" y="12" width="4" height="8" rx="1" class="fill-action" />
+            <rect x="10" y="8" width="4" height="12" rx="1" class="fill-action" />
+            <rect x="17" y="4" width="4" height="16" rx="1" class="fill-action" />
+          </svg>
+          <span class="text-2xl font-semibold text-neutral-900">Cifaro</span>
+        </div>
+        <p class="text-xs tracking-wide text-neutral-400">by PHtech</p>
       </div>
 
       <h1 class="mb-1 text-center text-lg">Criar conta</h1>

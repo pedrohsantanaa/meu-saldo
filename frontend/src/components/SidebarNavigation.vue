@@ -33,7 +33,10 @@ async function onLogout() {
         <rect x="10" y="8" width="4" height="12" rx="1" class="fill-action" />
         <rect x="17" y="4" width="4" height="16" rx="1" class="fill-action" />
       </svg>
-      <span class="text-lg font-semibold text-white">meuSaldo</span>
+      <div class="leading-tight">
+        <span class="block text-lg font-semibold text-white">Cifaro</span>
+        <span class="block text-[10px] tracking-wide text-white/60">by PHtech</span>
+      </div>
     </div>
 
     <ul class="flex-1 space-y-1 px-3">

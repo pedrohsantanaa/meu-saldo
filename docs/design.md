@@ -1,6 +1,9 @@
-# design.md --- meuSaldo
+# design.md --- Cifaro
 
-**Projeto:** meuSaldo --- Controle Financeiro Pessoal\
+**Projeto:** Cifaro --- Gestão Financeiro Pessoal\
+**Empresa:** PHtech --- Assinatura: Cifaro by PHtech\
+**Domínio:** https://cifaro.com.br\
+**Slogan (provisório):** Sua vida financeira em equilíbrio.\
 **Versão:** 0.2 --- Revisão com visões mensal e anual\
 **Documentos de referência:** `requirements.md` e `spec.md`\
 **Referência visual e funcional:** planilhas enviadas pelo responsável
@@ -12,7 +15,7 @@ pelo produto.
 
 Este documento define a proposta inicial de experiência do usuário,
 interface, arquitetura, organização dos módulos, modelo de dados e API
-do meuSaldo.
+do Cifaro.
 
 O design parte da estrutura utilizada na planilha atual, preservando os
 conceitos que já fazem sentido para o usuário:
@@ -107,7 +110,9 @@ mantendo a lógica da primeira planilha enviada.
 
 O cabeçalho deverá apresentar:
 
--   Nome do produto: meuSaldo.
+-   Nome do produto: Cifaro (logotipo textual), com a assinatura
+    institucional "by PHtech" em destaque discreto, sem competir com o
+    nome.
 -   Mês e ano selecionados.
 -   Botão para mês anterior.
 -   Botão para próximo mês.
@@ -330,7 +335,7 @@ selecionado.
 define um orçamento mensal por categoria para cada cartão e acompanha os
 gastos realizados.
 
-Esta é uma funcionalidade central do meuSaldo.
+Esta é uma funcionalidade central do Cifaro.
 
 #### Seleção de contexto
 
@@ -438,6 +443,24 @@ Direção proposta:
 
 As cores deverão ser aplicadas com moderação. O significado nunca deverá
 depender apenas da cor: utilizar rótulos, ícones ou textos de apoio.
+
+**Identidade do produto (Cifaro, decisão de 23/11/2026):**
+
+-   Logotipo textual com o nome **Cifaro**.
+-   Tipografia moderna, limpa e legível.
+-   Identidade visual minimalista e profissional, transmitindo
+    organização, confiança, simplicidade e controle financeiro.
+-   Interface intuitiva, responsiva e agradável, evitando excesso de
+    elementos visuais e de informações desnecessárias.
+-   A assinatura institucional **"by PHtech"** deve ser usada de maneira
+    discreta (texto pequeno e de baixo contraste), sem competir
+    visualmente com o nome Cifaro. Locais previstos: marca do menu
+    lateral e da navegação mobile, telas de login/cadastro e rodapé.
+-   **Propostas a validar pelo responsável pelo produto:** cores oficiais
+    da marca, logotipo definitivo (símbolo/gráfico) e elementos
+    gráficos complementares. Até essa validação, permanecem os tokens
+    visuais do protótipo aprovado (`docs/interface.png`,
+    `frontend/tailwind.config.js`).
 
 ### 6.2. Componentes reutilizáveis
 

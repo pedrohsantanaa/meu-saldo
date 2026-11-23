@@ -1,6 +1,9 @@
-# acceptance.md --- meuSaldo
+# acceptance.md --- Cifaro
 
-**Projeto:** meuSaldo --- Controle Financeiro Pessoal\
+**Projeto:** Cifaro --- Gestão Financeiro Pessoal\
+**Empresa:** PHtech --- Assinatura: Cifaro by PHtech\
+**Domínio:** https://cifaro.com.br\
+**Slogan (provisório):** Sua vida financeira em equilíbrio.\
 **Versão:** 0.1 --- Critérios de aceitação do MVP\
 **Documentos de referência:** `requirements.md`, `spec.md`, `design.md`
 e `tasks.md`
@@ -9,7 +12,7 @@ e `tasks.md`
 
 ## 1. Objetivo
 
-Este documento define como verificar se as funcionalidades do meuSaldo
+Este documento define como verificar se as funcionalidades do Cifaro
 foram implementadas corretamente e se o MVP atende aos requisitos do
 produto.
 
@@ -29,7 +32,8 @@ Um recurso somente será considerado aceito quando:
 
 Este documento considera as decisões confirmadas mais recentes:
 
--   O nome do produto é **meuSaldo**.
+-   O nome do produto é **Cifaro** (empresa PHtech, assinatura "Cifaro
+    by PHtech", domínio https://cifaro.com.br).
 -   A aplicação será web e responsiva.
 -   O usuário poderá cadastrar e controlar múltiplos cartões.
 -   O orçamento será definido por **cartão + categoria + mês**.
@@ -1097,7 +1101,7 @@ aceita.
 
 ## 18. Critérios gerais de aceite do MVP
 
-O MVP do meuSaldo poderá ser considerado aceito quando todos os itens P0
+O MVP do Cifaro poderá ser considerado aceito quando todos os itens P0
 aplicáveis forem aprovados e as pendências impeditivas tiverem sido
 resolvidas.
 
@@ -1155,7 +1159,7 @@ Preencher ao final de cada ciclo de validação.
 
 ------------------------------------------------------------------------
 
-**Princípio de validação:** o meuSaldo deve ser simples de utilizar, mas
+**Princípio de validação:** o Cifaro deve ser simples de utilizar, mas
 seus resultados financeiros precisam ser confiáveis. A interface só será
 considerada pronta quando facilitar o uso sem comprometer a precisão, a
 privacidade e a consistência dos dados.

@@ -16,11 +16,11 @@ app.use(router)
 // Nunca falhar em silêncio (T-065): erros de render e de navegação
 // ficam registrados no console para diagnóstico.
 app.config.errorHandler = (error) => {
-  console.error('[meuSaldo] erro não tratado:', error)
+  console.error('[Cifaro] erro não tratado:', error)
 }
 
 router.onError((error) => {
-  console.error('[meuSaldo] erro de navegação:', error)
+  console.error('[Cifaro] erro de navegação:', error)
 })
 
 // Sessão expirada/revogada: limpa a sessão e leva ao login com aviso.

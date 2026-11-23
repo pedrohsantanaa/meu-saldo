@@ -1,8 +1,10 @@
-# meuSaldo
+# Cifaro
 
-Aplicação web de controle financeiro pessoal: receitas, despesas, investimentos,
-cartões de crédito, faturas e orçamentos por categoria — com simplicidade como
-princípio central.
+**Cifaro by PHtech** — *Sua vida financeira em equilíbrio.*
+
+Plataforma SaaS de gestão financeira pessoal (<https://cifaro.com.br>):
+receitas, despesas, investimentos, cartões de crédito, faturas e orçamentos por
+categoria — com simplicidade como princípio central.
 
 Este repositório contém a documentação do produto (`docs/`) e a estrutura inicial
 do código (Fase 1 do plano de implementação).
@@ -10,7 +12,7 @@ do código (Fase 1 do plano de implementação).
 ## Estrutura
 
 ```text
-meu-saldo/
+cifaro/
 ├── docs/                  # Especificações do produto (requirements, spec, design, tasks, acceptance)
 ├── backend/               # API Python (FastAPI)
 │   ├── app/               # api/, core/, models/, schemas/, services/, repositories/
@@ -40,8 +42,9 @@ docker compose up --build
 - Front-end: <http://localhost:5173>
 - Back-end (Swagger): <http://localhost:38000/docs>
 - Saúde da API: <http://localhost:38000/health>
-- PostgreSQL: `localhost:15432` (banco/usuário/senha `meusaldo` por padrão;
-  portas configuráveis no `docker-compose.yml`)
+- PostgreSQL: `localhost:15432` (banco/usuário/senha `meusaldo` por padrão —
+  defaults históricos mantidos por compatibilidade; portas configuráveis no
+  `docker-compose.yml`)
 
 Ao encerrar: `docker compose down` (use `docker compose down -v` para remover os dados).
 

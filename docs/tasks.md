@@ -1,6 +1,9 @@
-# tasks.md --- meuSaldo
+# tasks.md --- Cifaro
 
-**Projeto:** meuSaldo --- Controle Financeiro Pessoal\
+**Projeto:** Cifaro --- Gestão Financeiro Pessoal\
+**Empresa:** PHtech --- Assinatura: Cifaro by PHtech\
+**Domínio:** https://cifaro.com.br\
+**Slogan (provisório):** Sua vida financeira em equilíbrio.\
 **Versão:** 0.1 --- Plano inicial de implementação do MVP\
 **Documentos de referência:** `requirements.md`, `spec.md` e `design.md`
 
@@ -8,7 +11,7 @@
 
 ## 1. Objetivo
 
-Este documento divide o desenvolvimento do meuSaldo em tarefas pequenas,
+Este documento divide o desenvolvimento do Cifaro em tarefas pequenas,
 ordenadas por dependência e prioridade. Cada tarefa deverá produzir uma
 entrega verificável.
 
@@ -51,7 +54,7 @@ A estrutura abaixo é uma referência inicial. Ajustá-la se o `design.md`
 ou a implementação justificar outra organização.
 
 ``` text
-meuSaldo/
+cifaro/
 ├── docs/
 │   ├── requirements.md
 │   ├── spec.md
@@ -871,7 +874,41 @@ atualizada.
 T-005 (compras parceladas continuam fora do MVP) nem a T-007/DD-08
 (despesas fixas seguem com lançamento manual mensal).
 
-## 16. Itens fora do MVP
+## 16. Fase 11 --- Identidade do produto (Cifaro)
+
+**Objetivo:** adotar oficialmente o nome **Cifaro** (empresa PHtech,
+assinatura "Cifaro by PHtech", domínio https://cifaro.com.br, slogan
+provisório "Sua vida financeira em equilíbrio.") em toda a
+documentação, nas configurações e nos textos visíveis do produto, sem
+alterar escopo funcional, regras de negócio ou identificadores internos.
+Decisão do responsável pelo produto registrada em 23/11/2026
+(`spec.md` §15, item 10).
+
+-   [x] **T-079 \[P0\]** Atualizar a documentação para a identidade
+    Cifaro.
+    -   `requirements.md`, `spec.md`, `design.md`, `tasks.md`,
+        `acceptance.md`, `README.md` e `AGENTS.md`.
+    -   Diretrizes de identidade visual em `design.md` §6.1 (logotipo
+        textual Cifaro, "by PHtech" discreto, identidade minimalista e
+        profissional); cores oficiais, logotipo definitivo e elementos
+        gráficos registrados como propostas a validar.
+    -   Menções históricas ao nome anterior preservadas; o rename foi
+        registrado no registro de divergências (`spec.md` §15).
+-   [x] **T-080 \[P0\]** Atualizar a aplicação e as configurações para a
+    identidade Cifaro.
+    -   Marca visível (login, cadastro, menu lateral, navegação mobile e
+        rodapé), título das páginas e metadados.
+    -   `APP_NAME` ("Cifaro API"), remetente de e-mail
+        (`no-reply@cifaro.com.br`) e mensagens de sistema.
+    -   Identificadores internos preservados por compatibilidade (chave
+        de sessão no navegador, defaults de banco e de segredo de
+        desenvolvimento).
+
+**Critério de conclusão da fase:** documentação e aplicação consistentes
+com a identidade Cifaro, testes e build verdes e referências
+remanescentes ao nome anterior documentadas.
+
+## 17. Itens fora do MVP
 
 Não implementar nesta primeira entrega, salvo decisão explícita
 posterior:
@@ -886,7 +923,7 @@ posterior:
 -   Metas avançadas e relatórios analíticos avançados.
 -   Exportação de dados, caso permaneça como funcionalidade futura.
 
-## 17. Ordem recomendada de execução
+## 18. Ordem recomendada de execução
 
 A ordem abaixo considera dependências técnicas e entrega de valor. As
 fases podem ser divididas em sprints menores.
@@ -928,8 +965,10 @@ fases podem ser divididas em sprints menores.
 Após a publicação do MVP, a **Fase 10** (T-074 a T-078) expandiu
 orçamentos e compras: orçamento geral sem cartão, recorrência de
 orçamento e registro de compras no cartão pela tela de Movimentações.
+A **Fase 11** (T-079 e T-080) registrou a adoção da identidade do
+produto **Cifaro by PHtech**.
 
-## 18. Definição de pronto (Definition of Done)
+## 19. Definição de pronto (Definition of Done)
 
 Uma tarefa poderá ser considerada concluída quando:
 
@@ -944,9 +983,9 @@ Uma tarefa poderá ser considerada concluída quando:
 -   [ ] A documentação foi atualizada quando necessário.
 -   [ ] A tarefa foi revisada e não introduz regressões conhecidas.
 
-## 19. Orientações para desenvolvimento com IA
+## 20. Orientações para desenvolvimento com IA
 
-Ao utilizar uma IA de programação para implementar o meuSaldo:
+Ao utilizar uma IA de programação para implementar o Cifaro:
 
 1.  Ler `requirements.md`, `spec.md`, `design.md` e este `tasks.md`
     antes de iniciar uma tarefa.

@@ -1,6 +1,9 @@
-# spec.md --- meuSaldo
+# spec.md --- Cifaro
 
-**Projeto:** meuSaldo --- Controle Financeiro Pessoal\
+**Projeto:** Cifaro --- Gestão Financeiro Pessoal\
+**Empresa:** PHtech --- Assinatura: Cifaro by PHtech\
+**Domínio:** https://cifaro.com.br\
+**Slogan (provisório):** Sua vida financeira em equilíbrio.\
 **Versão:** 0.1 --- Especificação inicial do MVP\
 **Documento relacionado:** `requirements.md`
 
@@ -9,7 +12,7 @@
 ## 1. Objetivo deste documento
 
 Este documento detalha o comportamento esperado das funcionalidades do
-meuSaldo, descrevendo fluxos, regras de negócio, validações e critérios
+Cifaro, descrevendo fluxos, regras de negócio, validações e critérios
 de aceitação para orientar o desenvolvimento.
 
 O foco é transformar os requisitos iniciais em comportamentos
@@ -20,7 +23,7 @@ definição** e não devem ser consideradas regras definitivas.
 
 ## 2. Visão do produto
 
-O meuSaldo é uma aplicação web para controle financeiro pessoal. Cada
+O Cifaro é uma aplicação web para controle financeiro pessoal. Cada
 usuário poderá registrar manualmente suas receitas, despesas e compras
 no cartão de crédito, além de consultar um resumo da própria situação
 financeira.
@@ -1026,6 +1029,14 @@ divergências encontradas entre `requirements.md`, `spec.md` e
     7.2 (fatura contada uma única vez; compras como detalhamento); os
     conjuntos de indicadores seguem divergentes e devem ser revistos na
     implementação da visão geral (T-037).
+10. **Identidade do produto (registro posterior):** o produto foi
+    renomeado de `meuSaldo` para **Cifaro** (empresa PHtech, assinatura
+    "Cifaro by PHtech", domínio https://cifaro.com.br, slogan provisório
+    "Sua vida financeira em equilíbrio.") por decisão do responsável
+    pelo produto em 23/11/2026 (`tasks.md` T-079/T-080). Os documentos
+    passam a usar o novo nome; menções ao nome anterior em registros
+    históricos — como o item 1 desta seção e o texto de tarefas já
+    concluídas — são intencionais.
 
 Divergências que dependem de decisões pendentes da Fase 0 (`tasks.md`)
 foram registradas, mas não resolvidas, e devem ser revistas após a

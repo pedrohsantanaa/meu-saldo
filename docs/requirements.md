@@ -1,10 +1,13 @@
-# requirements.md --- meuSaldo
+# requirements.md --- Cifaro
 
 ## 1. Visão geral do projeto
 
-**Nome:** MeuSaldo --- Controle Financeiro Pessoal
+**Nome:** Cifaro --- Gestão Financeiro Pessoal\
+**Empresa:** PHtech --- Assinatura: Cifaro by PHtech\
+**Domínio:** https://cifaro.com.br\
+**Slogan (provisório):** Sua vida financeira em equilíbrio.
 
-O MeuSaldo será uma aplicação web minimalista para organização e
+O Cifaro será uma aplicação web minimalista para organização e
 acompanhamento das finanças pessoais. A solução deverá priorizar
 simplicidade, praticidade, acessibilidade e facilidade de uso, evitando
 excesso de funcionalidades e complexidade.

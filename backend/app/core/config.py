@@ -14,7 +14,7 @@ class Settings(BaseSettings):
         extra="ignore",
     )
 
-    app_name: str = "meuSaldo API"
+    app_name: str = "Cifaro API"
     environment: str = "development"
     api_prefix: str = "/api"
     database_url: str = "postgresql+psycopg://meusaldo:meusaldo@localhost:5432/meusaldo"
@@ -28,7 +28,7 @@ class Settings(BaseSettings):
     reset_token_expire_minutes: int = 30
     frontend_base_url: str = "http://localhost:5173"
     email_backend: str = "console"  # "console" (dev) ou "smtp" (produção)
-    email_from: str = "no-reply@meusaldo.app"
+    email_from: str = "no-reply@cifaro.com.br"
     smtp_host: str = ""
     smtp_port: int = 587
     smtp_user: str = ""

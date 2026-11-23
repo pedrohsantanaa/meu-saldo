@@ -1,4 +1,4 @@
-/** Tokens visuais do meuSaldo, alinhados ao protótipo aprovado
+/** Tokens visuais do Cifaro, alinhados ao protótipo aprovado
  * (`docs/interface.png`).
  *
  * - Sidebar azul-marinho escuro com item ativo azul.

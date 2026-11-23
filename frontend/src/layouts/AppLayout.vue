@@ -23,6 +23,10 @@ const menuOpen = ref(false)
       <main class="flex-1 p-4 md:p-8">
         <slot />
       </main>
+
+      <footer class="px-4 py-3 text-center text-xs text-neutral-400 md:px-8">
+        Cifaro by PHtech
+      </footer>
     </div>
   </div>
 </template>

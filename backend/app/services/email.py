@@ -36,9 +36,10 @@ def send_password_reset(to: str, token: str) -> None:
     link = f"{settings.frontend_base_url}/redefinir-senha?token={token}"
     body = (
         "Olá!\n\n"
-        "Recebemos uma solicitação de redefinição de senha no meuSaldo.\n\n"
+        "Recebemos uma solicitação de redefinição de senha no Cifaro.\n\n"
         f"Para definir uma nova senha, acesse o link: {link}\n\n"
         f"O link expira em {settings.reset_token_expire_minutes} minutos.\n"
-        "Se você não solicitou esta redefinição, ignore este e-mail.\n"
+        "Se você não solicitou esta redefinição, ignore este e-mail.\n\n"
+        "Cifaro by PHtech\n"
     )
-    send_email(to, "meuSaldo — Redefinição de senha", body)
+    send_email(to, "Cifaro — Redefinição de senha", body)
