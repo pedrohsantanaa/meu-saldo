@@ -51,6 +51,7 @@ const seriesNotice = ref('')
 const seriesTarget = ref(null)
 
 const purchaseTarget = ref(null)
+const purchaseInitial = ref(null)
 const purchaseSaving = ref(false)
 const purchaseError = ref('')
 
@@ -79,20 +80,24 @@ const isGeneral = computed(() => props.mode === 'general')
 const spentHint = computed(() =>
   isGeneral.value
     ? 'Gastos do mês seguem as movimentações comuns lançadas no período.'
-    : 'Gastos do mês seguem o ciclo da fatura com vencimento no período.',
+    : 'Gastos do mês seguem as compras lançadas no cartão no período.',
 )
 
-const budgetModeOptions = [
-  { value: 'single', label: 'Valor único (este mês)' },
-  { value: 'installments', label: 'Parcelar valor total em meses' },
-  { value: 'monthly', label: 'Repetir valor mensal' },
-]
+const budgetModeOptions = computed(() => {
+  const recurring = [
+    { value: 'installments', label: 'Parcelar valor total em meses' },
+    { value: 'monthly', label: 'Repetir valor mensal' },
+  ]
+  // Linha de série: a configuração redefinida vale a partir deste mês.
+  if (budgetEditing.value?.recurrence) return recurring
+  return [{ value: 'single', label: 'Valor único (este mês)' }, ...recurring]
+})
 
 const budgetAmountLabel = computed(() => {
-  if (!budgetEditing.value && budgetForm.value.mode === 'installments') {
-    return 'Valor total'
+  if (budgetForm.value.mode === 'installments') {
+    return budgetEditing.value?.recurrence ? 'Valor total dos meses restantes' : 'Valor total'
   }
-  if (!budgetEditing.value && budgetForm.value.mode === 'monthly') {
+  if (budgetForm.value.mode === 'monthly') {
     return 'Valor mensal'
   }
   return 'Valor planejado'
@@ -154,11 +159,16 @@ function openEditBudget(row) {
   budgetEditing.value = row
   budgetError.value = ''
   categoryLocked.value = true
+  // Linha de série: pré-preenche a configuração para redefinir a partir
+  // deste mês (meses anteriores preservados).
+  const recurrence = row.recurrence
   budgetForm.value = {
     category_id: String(row.category_id),
-    budget_amount: Number(row.budget_amount),
-    mode: 'single',
-    count: 3,
+    budget_amount: recurrence
+      ? Number(recurrence.mode === 'installments' ? recurrence.remaining_total : recurrence.amount)
+      : Number(row.budget_amount),
+    mode: recurrence ? recurrence.mode : 'single',
+    count: recurrence ? recurrence.total - recurrence.position + 1 : 3,
   }
   budgetModalOpen.value = true
 }
@@ -166,7 +176,7 @@ function openEditBudget(row) {
 async function onSaveBudget() {
   budgetSaving.value = true
   budgetError.value = ''
-  const isSeries = !budgetEditing.value && budgetForm.value.mode !== 'single'
+  const isSeries = budgetForm.value.mode !== 'single'
   const count = Number(budgetForm.value.count)
   if (isSeries && (!Number.isInteger(count) || count < 2 || count > 60)) {
     budgetError.value = 'Informe um número de meses entre 2 e 60.'
@@ -178,21 +188,24 @@ async function onSaveBudget() {
   }
   let notice = ''
   try {
-    if (budgetEditing.value) {
+    if (budgetEditing.value && !isSeries) {
       await api.put(`${budgetBase.value}/${budgetEditing.value.id}`, payload)
     } else if (isSeries) {
-      // T-075: série de orçamentos (parcelas ou valor repetido).
-      const body = await api.post(`${budgetBase.value}/recurrences`, {
-        ...(isGeneral.value ? {} : { card_id: props.cardId }),
-        category_id: Number(budgetForm.value.category_id),
-        month: month.value,
-        recurrence: {
-          mode: budgetForm.value.mode,
-          amount: budgetForm.value.budget_amount,
-          count,
-        },
-      })
-      notice = seriesNoticeText(body)
+      // T-075/T-081: série criada ou reconfigurada a partir deste mês.
+      const recurrence = {
+        mode: budgetForm.value.mode,
+        amount: budgetForm.value.budget_amount,
+        count,
+      }
+      const body = budgetEditing.value
+        ? await api.put(`${budgetBase.value}/${budgetEditing.value.id}/recurrence`, recurrence)
+        : await api.post(`${budgetBase.value}/recurrences`, {
+            ...(isGeneral.value ? {} : { card_id: props.cardId }),
+            category_id: Number(budgetForm.value.category_id),
+            month: month.value,
+            recurrence,
+          })
+      notice = seriesNoticeText(body, Boolean(budgetEditing.value))
     } else {
       await api.post(budgetBase.value, {
         ...(isGeneral.value ? {} : { card_id: props.cardId }),
@@ -216,10 +229,11 @@ function parseMonth(month) {
   return new Date(year, monthNumber - 1, 1)
 }
 
-function seriesNoticeText(body) {
+function seriesNoticeText(body, isEdit = false) {
   const first = formatMonthYear(parseMonth(body.months[0]))
   const last = formatMonthYear(parseMonth(body.months[body.months.length - 1]))
-  return `Orçamento criado para ${body.months.length} meses (${first} a ${last}).`
+  const verb = isEdit ? 'atualizado' : 'criado'
+  return `Orçamento ${verb} para ${body.months.length} meses (${first} a ${last}).`
 }
 
 function recurrenceLabel(recurrence) {
@@ -246,9 +260,25 @@ async function onConfirmDeleteBudget() {
   await load()
 }
 
+function defaultPurchaseDate() {
+  // Compra iniciada pela categoria do mês em tela: a data padrão fica
+  // dentro do mês exibido, para o abatimento cair no orçamento visível.
+  const today = new Date()
+  const inViewedMonth =
+    today.getFullYear() === props.period.getFullYear() &&
+    today.getMonth() === props.period.getMonth()
+  if (!inViewedMonth) return `${month.value}-01`
+  const pad = (value) => String(value).padStart(2, '0')
+  return `${today.getFullYear()}-${pad(today.getMonth() + 1)}-${pad(today.getDate())}`
+}
+
 function openPurchase(row) {
   purchaseError.value = ''
   purchaseTarget.value = row
+  purchaseInitial.value = {
+    category_id: row.category_id,
+    purchase_date: defaultPurchaseDate(),
+  }
 }
 
 async function onSavePurchase(payload) {
@@ -482,7 +512,13 @@ onMounted(async () => {
 
     <BaseModal
       :open="budgetModalOpen"
-      :title="budgetEditing ? 'Editar orçamento' : 'Novo orçamento'"
+      :title="
+        budgetEditing
+          ? budgetEditing.recurrence
+            ? 'Editar série de orçamentos'
+            : 'Editar orçamento'
+          : 'Novo orçamento'
+      "
       @update:open="budgetModalOpen = $event"
     >
       <form class="space-y-4" @submit.prevent="onSaveBudget">
@@ -495,17 +531,13 @@ onMounted(async () => {
           required
         />
         <BaseSelect
-          v-if="!budgetEditing"
           v-model="budgetForm.mode"
           label="Tipo de orçamento"
           :options="budgetModeOptions"
         />
-        <CurrencyInput
-          v-model="budgetForm.budget_amount"
-          :label="budgetAmountLabel"
-        />
+        <CurrencyInput v-model="budgetForm.budget_amount" :label="budgetAmountLabel" />
         <BaseInput
-          v-if="!budgetEditing && budgetForm.mode !== 'single'"
+          v-if="budgetForm.mode !== 'single'"
           v-model.number="budgetForm.count"
           :label="
             budgetForm.mode === 'installments'
@@ -545,7 +577,7 @@ onMounted(async () => {
     >
       <PurchaseForm
         :categories="categories"
-        :initial="purchaseTarget ? { category_id: purchaseTarget.category_id } : null"
+        :initial="purchaseInitial"
         :loading="purchaseSaving"
         :error="purchaseError"
         @submit="onSavePurchase"
@@ -561,9 +593,7 @@ onMounted(async () => {
       <TransactionForm
         :categories="categories"
         :initial="
-          movementTarget
-            ? { type: 'expense', category_id: movementTarget.category_id }
-            : null
+          movementTarget ? { type: 'expense', category_id: movementTarget.category_id } : null
         "
         :loading="movementSaving"
         :error="movementError"

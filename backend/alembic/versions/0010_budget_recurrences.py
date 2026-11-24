@@ -70,9 +70,7 @@ def upgrade() -> None:
                 nullable=True,
             ),
         )
-        op.create_index(
-            f"ix_{table}_recurrence_id", table, ["recurrence_id"]
-        )
+        op.create_index(f"ix_{table}_recurrence_id", table, ["recurrence_id"])
 
 
 def downgrade() -> None:

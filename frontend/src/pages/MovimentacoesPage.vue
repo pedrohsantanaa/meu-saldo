@@ -34,6 +34,7 @@ const search = ref('')
 const typeFilter = ref('')
 const categoryFilter = ref('')
 const paymentFilter = ref('')
+const cardFilter = ref('')
 const route = useRoute()
 const router = useRouter()
 
@@ -53,11 +54,14 @@ const purchaseModalOpen = ref(false)
 const purchaseSaving = ref(false)
 const purchaseError = ref('')
 const purchaseNotice = ref('')
+const purchaseEditing = ref(null)
+const purchaseInitial = ref(null)
 
 const typeOptions = [
   { value: 'income', label: 'Receita' },
   { value: 'expense', label: 'Despesa' },
   { value: 'investment', label: 'Investimento' },
+  { value: 'card_purchase', label: 'Compra no cartão' },
 ]
 
 const paymentOptions = [
@@ -65,6 +69,7 @@ const paymentOptions = [
   { value: 'pix', label: 'Pix' },
   { value: 'debito', label: 'Débito' },
   { value: 'outra', label: 'Outra' },
+  { value: 'credito', label: 'Cartão de crédito' },
 ]
 
 const categoryOptions = computed(() =>
@@ -72,6 +77,10 @@ const categoryOptions = computed(() =>
     value: String(category.id),
     label: category.name,
   })),
+)
+
+const cardOptions = computed(() =>
+  cards.value.map((card) => ({ value: String(card.id), label: card.name })),
 )
 
 const monthBounds = computed(() => {
@@ -89,19 +98,35 @@ function categoryName(id) {
   return categories.value.find((category) => category.id === id)?.name ?? '—'
 }
 
+function isPurchase(movement) {
+  return movement.source === 'card_purchase'
+}
+
 function badgeVariant(movement) {
+  if (isPurchase(movement)) return 'expense'
   if (movement.type === 'income') return 'income'
   if (movement.type === 'investment') return 'investment'
   return movement.expense_type
 }
 
 function typeLabel(movement) {
+  if (isPurchase(movement)) return 'Compra no cartão'
   if (movement.type === 'income') return 'Receita'
   if (movement.type === 'investment') return 'Investimento'
   return movement.expense_type === 'fixed' ? 'Despesa Fixa' : 'Despesa Variável'
 }
 
+function invoiceLabel(movement) {
+  return movement.invoice_reference_month
+    ? `Fatura de ${formatMonthYear(parseMonth(movement.invoice_reference_month))}`
+    : ''
+}
+
 function detailLabel(movement) {
+  // Compra no cartão: identifica o cartão utilizado e a fatura.
+  if (isPurchase(movement)) {
+    return [movement.card_name, invoiceLabel(movement)].filter(Boolean).join(' · ')
+  }
   const parts = []
   if (movement.type === 'expense') {
     parts.push(movement.expense_type === 'fixed' ? 'Fixa' : 'Variável')
@@ -119,10 +144,12 @@ async function load() {
   if (typeFilter.value) params.set('type', typeFilter.value)
   if (categoryFilter.value) params.set('category_id', categoryFilter.value)
   if (paymentFilter.value) params.set('payment_method', paymentFilter.value)
+  if (cardFilter.value) params.set('card_id', cardFilter.value)
   if (search.value) params.set('search', search.value)
 
   try {
-    movements.value = await api.get(`/transactions?${params.toString()}`)
+    // Lista unificada: movimentações comuns e compras no cartão (T-083).
+    movements.value = await api.get(`/movements?${params.toString()}`)
   } catch (err) {
     // AC-080: erro visível com nova tentativa, nunca spinner eterno.
     error.value = err.message || 'Não foi possível carregar as movimentações.'
@@ -131,7 +158,7 @@ async function load() {
   }
 }
 
-watch([period, typeFilter, categoryFilter, paymentFilter], load)
+watch([period, typeFilter, categoryFilter, paymentFilter, cardFilter], load)
 watch(search, load)
 
 function openCreate() {
@@ -142,6 +169,10 @@ function openCreate() {
 }
 
 function openEdit(movement) {
+  if (isPurchase(movement)) {
+    openPurchaseEdit(movement)
+    return
+  }
   editing.value = movement
   formError.value = ''
   modalOpen.value = true
@@ -166,15 +197,68 @@ async function onSave(payload) {
 }
 
 async function onConfirmDelete() {
-  await api.delete(`/transactions/${confirmTarget.value.id}`)
+  const movement = confirmTarget.value
   confirmTarget.value = null
+  // Compra no cartão: exclui pelo fluxo de compra (nunca vira transação).
+  if (isPurchase(movement)) {
+    await api.delete(`/cards/${movement.credit_card_id}/purchases/${movement.id}`)
+  } else {
+    await api.delete(`/transactions/${movement.id}`)
+  }
   await load()
 }
 
 function openPurchaseCreate() {
+  purchaseEditing.value = null
+  purchaseInitial.value = null
   purchaseError.value = ''
   purchaseNotice.value = ''
   purchaseModalOpen.value = true
+}
+
+function openPurchaseEdit(movement) {
+  purchaseEditing.value = movement
+  purchaseInitial.value = {
+    description: movement.description,
+    total_amount: movement.amount,
+    purchase_date: movement.transaction_date,
+    category_id: movement.category_id,
+    notes: movement.notes,
+  }
+  purchaseError.value = ''
+  purchaseNotice.value = ''
+  purchaseModalOpen.value = true
+}
+
+async function onSavePurchaseEdit(payload) {
+  purchaseSaving.value = true
+  purchaseError.value = ''
+  try {
+    await api.put(
+      `/cards/${purchaseEditing.value.credit_card_id}/purchases/${purchaseEditing.value.id}`,
+      payload,
+    )
+    purchaseModalOpen.value = false
+    purchaseEditing.value = null
+    await load()
+  } catch (err) {
+    purchaseError.value = err.message || 'Não foi possível salvar a compra.'
+  } finally {
+    purchaseSaving.value = false
+  }
+}
+
+function onSubmitPurchase(payload) {
+  if (purchaseEditing.value) {
+    onSavePurchaseEdit(payload)
+  } else {
+    onSavePurchase(payload)
+  }
+}
+
+function closePurchaseModal() {
+  purchaseModalOpen.value = false
+  purchaseEditing.value = null
 }
 
 function parseMonth(month) {
@@ -186,9 +270,9 @@ function cardName(cardId) {
   return cards.value.find((card) => card.id === cardId)?.name ?? ''
 }
 
-// T-076: compra no cartão registrada pela tela de Movimentações. A
-// compra segue o ciclo da fatura (não vira movimentação comum) e por
-// isso a lista de movimentações não muda.
+// T-076/T-083: compra no cartão registrada pela tela de Movimentações.
+// A compra segue o ciclo da fatura (não vira movimentação comum), mas
+// aparece na lista unificada identificada como compra no cartão.
 async function onSavePurchase(payload) {
   purchaseSaving.value = true
   purchaseError.value = ''
@@ -198,6 +282,7 @@ async function onSavePurchase(payload) {
     purchaseModalOpen.value = false
     const invoiceMonth = formatMonthYear(parseMonth(body.invoice_reference_month))
     purchaseNotice.value = `Compra registrada na fatura de ${invoiceMonth} do cartão ${cardName(cardId)}. Acompanhe em Cartões.`
+    await load()
   } catch (err) {
     purchaseError.value = err.message || 'Não foi possível salvar a compra.'
   } finally {
@@ -223,11 +308,7 @@ onMounted(async () => {
           <ArrowDownTrayIcon class="h-4 w-4" aria-hidden="true" />
           Exportar
         </BaseButton>
-        <BaseButton
-          v-if="cards.length > 0"
-          variant="secondary"
-          @click="openPurchaseCreate"
-        >
+        <BaseButton v-if="cards.length > 0" variant="secondary" @click="openPurchaseCreate">
           <CreditCardIcon class="h-4 w-4" aria-hidden="true" />
           Nova Compra no Cartão
         </BaseButton>
@@ -274,6 +355,14 @@ onMounted(async () => {
         placeholder="Forma de pagamento"
       />
 
+      <BaseSelect
+        v-model="cardFilter"
+        :options="cardOptions"
+        class="w-44"
+        aria-label="Filtrar por cartão"
+        placeholder="Todos os cartões"
+      />
+
       <div class="relative flex-1 sm:min-w-[14rem]">
         <MagnifyingGlassIcon
           class="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-neutral-400"
@@ -315,7 +404,7 @@ onMounted(async () => {
           </tr>
         </thead>
         <tbody class="divide-y divide-neutral-100">
-          <tr v-for="movement in movements" :key="movement.id">
+          <tr v-for="movement in movements" :key="`${movement.source}-${movement.id}`">
             <td class="px-4 py-3 text-neutral-600">{{ formatDate(movement.transaction_date) }}</td>
             <td class="px-4 py-3">
               <p class="font-medium text-neutral-900">{{ movement.description }}</p>
@@ -372,26 +461,35 @@ onMounted(async () => {
 
     <BaseModal
       :open="purchaseModalOpen"
-      title="Nova compra no cartão"
-      @update:open="purchaseModalOpen = $event"
+      :title="
+        purchaseEditing
+          ? `Editar compra no cartão — ${cardName(purchaseEditing.credit_card_id)}`
+          : 'Nova compra no cartão'
+      "
+      @update:open="closePurchaseModal"
     >
       <PurchaseForm
         :categories="categories"
-        :cards="cards"
+        :cards="purchaseEditing ? [] : cards"
+        :initial="purchaseInitial"
         :loading="purchaseSaving"
         :error="purchaseError"
-        @submit="onSavePurchase"
-        @cancel="purchaseModalOpen = false"
+        @submit="onSubmitPurchase"
+        @cancel="closePurchaseModal"
       />
       <p class="mt-3 text-xs text-neutral-400">
-        A compra entra na fatura do ciclo do cartão e aparece em Cartões — não
-        é uma movimentação comum.
+        A compra entra na fatura do ciclo do cartão, aparece nesta lista identificada pelo cartão e
+        abate o orçamento do cartão no mês da compra — não é uma movimentação comum.
       </p>
     </BaseModal>
 
     <ConfirmDialog
       :open="Boolean(confirmTarget)"
-      title="Excluir movimentação"
+      :title="
+        confirmTarget && isPurchase(confirmTarget)
+          ? 'Excluir compra no cartão'
+          : 'Excluir movimentação'
+      "
       :message="`Deseja excluir &quot;${confirmTarget?.description}&quot;? Esta ação não pode ser desfeita.`"
       confirm-label="Excluir"
       @update:open="confirmTarget = null"

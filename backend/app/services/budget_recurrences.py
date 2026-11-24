@@ -13,7 +13,10 @@ Regras (`spec.md` §6.13):
   informados (AC-118);
 - cada mês gerado vira uma linha de orçamento comum, editável e
   removível mês a mês sem propagação (AC-120); a exclusão da série
-  remove todas as linhas geradas (AC-119).
+  remove todas as linhas geradas (AC-119);
+- a recorrência também pode ser ativada/reconfigurada na edição
+  (`attach_series`): a série passa a valer a partir do mês editado e os
+  meses anteriores nunca são alterados.
 """
 
 from datetime import date
@@ -32,6 +35,7 @@ from app.models import (
 from app.schemas.budget import BudgetRecurrenceCreate
 from app.services.budgets import (
     CENTS,
+    ZERO,
     money,
     month_date,
     month_str,
@@ -130,6 +134,127 @@ def create_series(
     return record, rows
 
 
+def attach_series(
+    db: Session,
+    user: User,
+    budget,
+    *,
+    recurrence: BudgetRecurrenceCreate,
+    budget_model,
+) -> tuple[BudgetRecurrence, list]:
+    """Ativa ou reconfigura a recorrência a partir do mês do orçamento.
+
+    - o mês editado vira o primeiro período da nova configuração e o
+      valor da linha segue o modo escolhido (parcela ou valor mensal);
+    - meses anteriores — inclusive os de uma série existente — nunca são
+      alterados;
+    - meses futuros já orçados fora da própria série bloqueiam a geração
+      com a lista de conflitos (atômico, AC-118);
+    - linhas da série além do novo horizonte são removidas: a série é
+      redefinida a partir do mês editado.
+    """
+    start_month = budget.reference_month
+    months = series_months(start_month, recurrence.count)
+    credit_card_id = getattr(budget, "credit_card_id", None)
+
+    record = None
+    if budget.recurrence_id is not None:
+        record = db.scalar(
+            select(BudgetRecurrence).where(
+                BudgetRecurrence.id == budget.recurrence_id,
+                BudgetRecurrence.user_id == user.id,
+            )
+        )
+
+    owned_rows: dict[date, object] = {}
+    if record is not None:
+        rows = db.scalars(
+            select(budget_model).where(
+                budget_model.user_id == user.id,
+                budget_model.recurrence_id == record.id,
+            )
+        )
+        owned_rows = {row.reference_month: row for row in rows}
+    owned_rows.setdefault(start_month, budget)
+
+    conflicts = _conflict_months(
+        db,
+        user,
+        budget_model,
+        budget.category_id,
+        months,
+        credit_card_id,
+        exclude_ids={row.id for row in owned_rows.values() if row.id is not None},
+    )
+    if conflicts:
+        raise AppError(
+            code="budget_already_exists",
+            message=(
+                "Já existe orçamento em meses da série. Ajuste o número de "
+                "meses ou edite os meses existentes."
+            ),
+            http_status=400,
+            details={"months": conflicts},
+        )
+
+    amounts = (
+        split_amounts(recurrence.amount, recurrence.count)
+        if recurrence.mode == "installments"
+        else [money(recurrence.amount)] * recurrence.count
+    )
+
+    if record is None:
+        record = BudgetRecurrence(
+            user_id=user.id,
+            credit_card_id=credit_card_id,
+            category_id=budget.category_id,
+            mode=recurrence.mode,
+            amount=money(recurrence.amount),
+            count=recurrence.count,
+            start_month=start_month,
+        )
+        db.add(record)
+    else:
+        # A nova configuração cobre a partir do mês editado; o total da
+        # série passa a ser os meses preservados + o novo horizonte.
+        preserved = (start_month.year - record.start_month.year) * 12 + (
+            start_month.month - record.start_month.month
+        )
+        record.mode = recurrence.mode
+        record.amount = money(recurrence.amount)
+        record.count = preserved + recurrence.count
+    db.flush()
+
+    rows = []
+    for reference_month, amount in zip(months, amounts, strict=True):
+        row = owned_rows.get(reference_month)
+        if row is not None:
+            row.budget_amount = amount
+        else:
+            row = budget_model(
+                user_id=user.id,
+                category_id=budget.category_id,
+                reference_month=reference_month,
+                budget_amount=amount,
+            )
+            if credit_card_id is not None:
+                row.credit_card_id = credit_card_id
+            db.add(row)
+        row.recurrence_id = record.id
+        rows.append(row)
+
+    # Sobras da série além do novo horizonte deixam de existir.
+    last_month = months[-1]
+    for reference_month, row in owned_rows.items():
+        if reference_month > last_month:
+            db.delete(row)
+
+    db.commit()
+    for row in rows:
+        db.refresh(row)
+    return record, rows
+
+
 def delete_series(
     db: Session, user: User, recurrence_id: int, *, general: bool
 ) -> None:
@@ -145,9 +270,7 @@ def delete_series(
             BudgetRecurrence.user_id == user.id,
         )
     )
-    scope_matches = record is not None and (
-        (record.credit_card_id is None) == general
-    )
+    scope_matches = record is not None and ((record.credit_card_id is None) == general)
     if not scope_matches:
         raise AppError(
             code="recurrence_not_found",
@@ -179,7 +302,13 @@ def recurrence_payload(record: BudgetRecurrence) -> dict:
 
 def row_recurrences(db: Session, budgets: list) -> dict[int, dict]:
     """Mapa linha → dados da série (badge "Parcela X/Y"), vazio para
-    linhas avulsas. A posição é derivada do mês inicial da série."""
+    linhas avulsas. A posição é derivada do mês inicial da série.
+
+    `amount` é o valor configurado da série (total parcelado ou valor
+    mensal) e `remaining_total` soma as parcelas a partir do mês da
+    linha — base para reconfigurar a série na edição sem alterar o
+    total dos meses restantes.
+    """
     ids = {budget.recurrence_id for budget in budgets if budget.recurrence_id}
     if not ids:
         return {}
@@ -189,6 +318,15 @@ def row_recurrences(db: Session, budgets: list) -> dict[int, dict]:
             select(BudgetRecurrence).where(BudgetRecurrence.id.in_(ids))
         )
     }
+    budget_model = type(budgets[0])
+    series_rows = list(
+        db.scalars(
+            select(budget_model).where(
+                budget_model.user_id == budgets[0].user_id,
+                budget_model.recurrence_id.in_(ids),
+            )
+        )
+    )
     result = {}
     for budget in budgets:
         record = records.get(budget.recurrence_id) if budget.recurrence_id else None
@@ -199,11 +337,22 @@ def row_recurrences(db: Session, budgets: list) -> dict[int, dict]:
             + (budget.reference_month.month - record.start_month.month)
             + 1
         )
+        remaining_total = sum(
+            (
+                row.budget_amount
+                for row in series_rows
+                if row.recurrence_id == record.id
+                and row.reference_month >= budget.reference_month
+            ),
+            ZERO,
+        )
         result[budget.id] = {
             "id": record.id,
             "mode": record.mode,
             "position": position,
             "total": record.count,
+            "amount": money(record.amount),
+            "remaining_total": money(remaining_total),
         }
     return result
 
@@ -215,6 +364,7 @@ def _conflict_months(
     category_id: int,
     months: list[date],
     credit_card_id: int | None,
+    exclude_ids: set[int] | None = None,
 ) -> list[str]:
     filters = [
         budget_model.user_id == user.id,
@@ -223,7 +373,7 @@ def _conflict_months(
     ]
     if credit_card_id is not None:
         filters.append(budget_model.credit_card_id == credit_card_id)
-    rows = db.scalars(
-        select(budget_model.reference_month).where(*filters)
-    ).all()
+    if exclude_ids:
+        filters.append(budget_model.id.notin_(exclude_ids))
+    rows = db.scalars(select(budget_model.reference_month).where(*filters)).all()
     return sorted(month_str(item) for item in rows)

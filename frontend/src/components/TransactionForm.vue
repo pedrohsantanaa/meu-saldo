@@ -52,8 +52,7 @@ watch(
       type: value.type ?? 'expense',
       description: value.description ?? '',
       amount: Number(value.amount ?? 0),
-      transaction_date:
-        value.transaction_date ?? new Date().toISOString().slice(0, 10),
+      transaction_date: value.transaction_date ?? new Date().toISOString().slice(0, 10),
       category_id: value.category_id != null ? String(value.category_id) : '',
       expense_type: value.expense_type ?? 'variable',
       payment_method: value.payment_method ?? 'pix',

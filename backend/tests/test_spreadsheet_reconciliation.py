@@ -7,6 +7,9 @@ AC-096 a AC-099. AC-100: divergências entre planilha e sistema devem ser
 explicadas pelas regras definidas — as regras de período (competência da
 fatura), classificação (despesa variável), fatura (consolidação única) e
 duplicidade (compra × fatura) estão registradas em `spec.md` §7.2.
+Nos orçamentos, o abatimento das compras é imediato, pelo mês da data
+da compra (decisão do produto registrada em `spec.md` §15) — ver o
+exemplo 4.
 """
 
 from datetime import datetime
@@ -162,48 +165,58 @@ def test_exemplo_3_resumo_do_mes(client, db_session_factory):
     assert summary["remaining"] == "1800.00"
 
 
-def test_exemplo_4_orcamento_por_ciclo(client, db_session_factory):
-    """Exemplo 4 (`spec.md` §7.4, AC-099): orçamento de "Alimentação" no
-    cartão para dezembro: R$ 500,00; gastos de dezembro = compras da
-    fatura com vencimento em dezembro (R$ 320,00); restante R$ 180,00.
-    Uma compra em 29/11 entraria na fatura de janeiro e contaria no
-    orçamento de janeiro."""
+def test_exemplo_4_orcamento_pelo_mes_da_compra(client, db_session_factory):
+    """Exemplo 4 (`spec.md` §7.4): orçamento de "Alimentação" no cartão.
+
+    Decisão do produto registrada em `spec.md` §15: o abatimento no
+    orçamento é imediato — cada compra conta no mês da própria data,
+    independentemente da fatura a que é atribuída. A fatura continua
+    definindo o mês em que a compra consolida no dashboard (§7.2), sem
+    duplicidade entre as duas contagens.
+    """
     headers = auth_client(client)
     card = create_card(client, headers)
     backdate_card(db_session_factory, card["id"], datetime(2026, 1, 15))
-    client.post(
-        "/api/budgets",
-        json={
-            "card_id": card["id"],
-            "category_id": category_id(client, headers, "Alimentação"),
-            "month": "2026-12",
-            "budget_amount": "500.00",
-        },
-        headers=headers,
-    )
+    for month in ("2026-11", "2026-12"):
+        client.post(
+            "/api/budgets",
+            json={
+                "card_id": card["id"],
+                "category_id": category_id(client, headers, "Alimentação"),
+                "month": month,
+                "budget_amount": "500.00",
+            },
+            headers=headers,
+        )
     add_purchase(client, headers, card["id"], "Compra A", "150.00", "2026-11-10")
     add_purchase(client, headers, card["id"], "Compra B", "80.00", "2026-11-15")
     add_purchase(client, headers, card["id"], "Compra C", "90.00", "2026-11-20")
+    # Compra em 29/11 vai para a fatura de janeiro, mas conta no
+    # orçamento de novembro (mês da compra).
     add_purchase(
-        client, headers, card["id"], "Compra de janeiro", "40.00", "2026-11-29"
+        client, headers, card["id"], "Compra de dezembro", "40.00", "2026-12-05"
     )
 
+    november = client.get(
+        "/api/budgets",
+        params={"month": "2026-11", "card_id": card["id"]},
+        headers=headers,
+    ).json()
     december = client.get(
         "/api/budgets",
         params={"month": "2026-12", "card_id": card["id"]},
         headers=headers,
     ).json()
-    january = client.get(
-        "/api/budgets",
-        params={"month": "2027-01", "card_id": card["id"]},
-        headers=headers,
-    ).json()
 
-    assert december["rows"][0]["spent"] == "320.00"
-    assert december["rows"][0]["remaining"] == "180.00"
-    # A compra de 29/11 conta no orçamento de janeiro (sem orçamento lá).
-    assert january["rows"][0]["spent"] == "40.00"
-    assert january["rows"][0]["budget_amount"] is None
+    assert november["rows"][0]["spent"] == "320.00"
+    assert november["rows"][0]["remaining"] == "180.00"
+    assert december["rows"][0]["spent"] == "40.00"
+    assert december["rows"][0]["remaining"] == "460.00"
+
+    # O dashboard mantém a competência da fatura: as compras de novembro
+    # consolidam na fatura que vence em dezembro; a de 05/12, em janeiro.
+    assert monthly(client, headers, "2026-12")["card_purchases_total"] == "320.00"
+    assert monthly(client, headers, "2027-01")["card_purchases_total"] == "40.00"
 
 
 def test_visao_anual_corresponde_a_soma_dos_meses(client, db_session_factory):

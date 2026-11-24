@@ -28,13 +28,14 @@ const form = reactive({
 watch(
   () => props.initial,
   (value) => {
-    if (!value) return
+    // Sem `initial` (criação), o formulário volta ao estado inicial.
     Object.assign(form, {
-      description: value.description ?? '',
-      total_amount: Number(value.total_amount ?? 0),
-      purchase_date: value.purchase_date ?? new Date().toISOString().slice(0, 10),
-      category_id: value.category_id != null ? String(value.category_id) : '',
-      notes: value.notes ?? '',
+      card_id: '',
+      description: value?.description ?? '',
+      total_amount: Number(value?.total_amount ?? 0),
+      purchase_date: value?.purchase_date ?? new Date().toISOString().slice(0, 10),
+      category_id: value?.category_id != null ? String(value.category_id) : '',
+      notes: value?.notes ?? '',
     })
   },
   { immediate: true },

@@ -31,8 +31,7 @@ async function load() {
   try {
     cards.value = await api.get('/cards')
     // Mantém a escolha do usuário; sem cartões, começa nas despesas gerais.
-    selectedScope.value =
-      selectedScope.value || String(cards.value[0]?.id ?? GENERAL_SCOPE)
+    selectedScope.value = selectedScope.value || String(cards.value[0]?.id ?? GENERAL_SCOPE)
   } catch (err) {
     // AC-080: erro visível com nova tentativa, nunca spinner eterno.
     error.value = err.message || 'Não foi possível carregar os cartões.'
@@ -63,11 +62,7 @@ onMounted(load)
           <span
             class="flex h-8 w-8 items-center justify-center rounded-full bg-attention-light text-attention"
           >
-            <BanknotesIcon
-              v-if="isGeneralScope"
-              class="h-4 w-4"
-              aria-hidden="true"
-            />
+            <BanknotesIcon v-if="isGeneralScope" class="h-4 w-4" aria-hidden="true" />
             <CreditCardIcon v-else class="h-4 w-4" aria-hidden="true" />
           </span>
           <BaseSelect
@@ -79,11 +74,7 @@ onMounted(load)
         </div>
       </div>
 
-      <BudgetSection
-        v-if="isGeneralScope"
-        mode="general"
-        :period="period"
-      />
+      <BudgetSection v-if="isGeneralScope" mode="general" :period="period" />
       <BudgetSection
         v-else-if="selectedScope"
         :card-id="Number(selectedScope)"

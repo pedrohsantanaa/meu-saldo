@@ -378,6 +378,21 @@ reativar), preservando o histórico dos lançamentos associados.
     selecionados.
 -   A ordenação padrão apresenta primeiro os registros mais recentes.
 
+**Definido (Fase 12, T-083):** as compras no cartão de crédito também
+aparecem no histórico (tela Movimentações), em listagem unificada com as
+movimentações comuns:
+
+-   Cada compra é identificada claramente como "Compra no cartão", com o
+    cartão utilizado e a fatura em que consolida.
+-   Os mesmos recursos de consulta, filtros e detalhamento valem para as
+    compras, respeitando as particularidades: a compra é sempre despesa,
+    a data exibida é a data da compra e o filtro "Cartão de crédito"
+    (forma de pagamento) e o filtro por cartão restringem às compras.
+-   Editar e excluir uma compra pelo histórico segue o fluxo de compra
+    (inclusive a reatribuição de fatura quando a data muda); a compra
+    nunca é convertida em movimentação comum (seção 7.2).
+-   Critérios de aceitação: AC-128 a AC-130 em `acceptance.md`.
+
 ### 6.7. Dashboard
 
 **Descrição:** apresentar uma visão resumida e objetiva da situação
@@ -600,8 +615,11 @@ categoria para cada cartão e acompanhe o valor gasto e o restante.
     diferentes.
 -   `Restante da categoria = Orçamento - Gastos`, em que os gastos somam
     as compras atribuídas ao contexto do orçamento.
--   Os gastos do mês são as compras atribuídas à fatura com vencimento
-    naquele mês (seção 7.2).
+-   Os gastos do mês são as compras lançadas no cartão no próprio mês
+    (data da compra): o abatimento é imediato, como nas demais
+    movimentações (decisão registrada na seção 15). O ciclo da fatura
+    continua definindo a competência em que a compra consolida no
+    resultado do mês (seção 7.2).
 -   Quando não houver gastos, apresentar `R$ 0,00`.
 -   Quando não houver orçamento cadastrado, apresentar "Não definido",
     sem assumir valor zero (decisão DD-10, confirmada na Fase 7).
@@ -617,8 +635,8 @@ fora do cartão:
 -   A combinação usuário + categoria + mês é única.
 -   Os gastos do mês somam as movimentações comuns de despesa da
     categoria lançadas no mês (seção 7.2). Compras no cartão não contam
-    neste orçamento: elas seguem o ciclo da fatura nos orçamentos por
-    cartão.
+    neste orçamento: elas abatem o orçamento do próprio cartão, no mês
+    da data da compra.
 -   Despesas fixas e variáveis usam o mesmo mecanismo, conforme o grupo
     da categoria; somente categorias de despesa aceitam orçamento.
 -   "Não definido", restante, percentual e estados de utilização seguem
@@ -643,8 +661,23 @@ recorrência de horizonte fixo (por cartão ou gerais):
     compras (T-005, continua fora do MVP) nem com a recorrência de
     despesas fixas (T-007/DD-08, lançamento manual permanece).
 
-**Critérios de aceitação:** ver AC-063 a AC-076 e AC-111 a AC-122 em
-`acceptance.md`.
+**Definido (Fase 12, T-081):** a recorrência também pode ser ativada ou
+reconfigurada na edição de um orçamento existente (por cartão ou geral):
+
+-   A nova configuração (parcelar/repetir, valor e número de meses) vale
+    a partir do mês da linha editada, que passa a ser o primeiro período
+    da série; meses anteriores nunca são alterados.
+-   Ao editar uma linha que já pertence a uma série, a configuração é
+    redefinida a partir daquele mês: os meses anteriores preservam seus
+    valores e as linhas da série além do novo horizonte são removidas.
+-   Meses futuros já orçados fora da própria série bloqueiam a geração e
+    informam os meses em conflito (mesmo comportamento atômico da
+    criação).
+-   Cada mês gerado continua sendo uma linha comum, editável e removível
+    mês a mês, sem propagação.
+
+**Critérios de aceitação:** ver AC-063 a AC-076, AC-111 a AC-122 e
+AC-123 a AC-130 em `acceptance.md`.
 
 ## 7. Regras de cálculo financeiro
 
@@ -697,9 +730,12 @@ financeiro.
     despesa de consumo; não altera receitas, despesas, saídas ou
     restante do período. Seu registro no MVP libera o limite do cartão
     (seção 6.11).
-7.  **Os orçamentos seguem o mesmo ciclo** da fatura: os gastos do mês
-    são as compras atribuídas à fatura com vencimento naquele mês
-    (T-003).
+7.  **Os orçamentos** abatem as compras no mês da data da compra, com
+    efeito imediato (decisão posterior à T-003, registrada na seção 15):
+    o ciclo da fatura continua definindo apenas a competência em que a
+    compra consolida no resultado do mês (itens 2 a 5). Cada compra
+    conta uma única vez em cada escopo de orçamento e o pagamento da
+    fatura nunca entra nos gastos (T-057).
 8.  **A visão anual** agrega os valores mês a mês pela mesma política.
 
 **Regra do dia do fechamento (T-004, DD-03):** o ciclo é considerado
@@ -754,14 +790,19 @@ Lembrete: a fatura é identificada pelo mês do vencimento.
 -   Os R\$ 300,00 de compras no cartão já estão incluídos nas despesas
     variáveis e não são somados novamente pela fatura.
 
-**Exemplo 4 --- Orçamento por ciclo (T-003):**
+**Exemplo 4 --- Orçamento pelo mês da compra (seção 15):**
 
--   Orçamento de "Gasolina" no cartão para dezembro: R\$ 500,00.
--   Gastos de dezembro = compras da fatura com vencimento em dezembro
-    (ciclo que fecha em 28/11): R\$ 320,00.
--   Restante da categoria = 500,00 - 320,00 = R\$ 180,00.
--   Uma compra feita em 29/11 entraria na fatura de janeiro e contaria
-    no orçamento de janeiro.
+-   Orçamento de "Gasolina" no cartão para novembro: R\$ 500,00.
+-   Gastos de novembro = compras lançadas no cartão em novembro (R\$
+    150,00 em 10/11, R\$ 80,00 em 15/11, R\$ 90,00 em 20/11 e R\$
+    40,00 em 29/11), independentemente da fatura a que cada uma é
+    atribuída: R\$ 360,00.
+-   Restante da categoria = 500,00 - 360,00 = R\$ 140,00.
+-   No resultado do mês (dashboard), a competência continua sendo a da
+    fatura: as compras até 28/11 consolidam na fatura de dezembro (R\$
+    320,00) e a compra de 29/11 na fatura de janeiro (R\$ 40,00). Os
+    dois critérios nunca se somam: o orçamento detalha o consumo por
+    categoria e o dashboard consolida a obrigação da fatura.
 
 ## 8. Requisitos de interface e experiência
 
@@ -1037,6 +1078,19 @@ divergências encontradas entre `requirements.md`, `spec.md` e
     passam a usar o novo nome; menções ao nome anterior em registros
     históricos — como o item 1 desta seção e o texto de tarefas já
     concluídas — são intencionais.
+11. **Competência dos gastos no orçamento (registro posterior, Fase 12 /
+    T-081 a T-083):** por decisão do responsável pelo produto em
+    24/11/2026, os gastos dos orçamentos por cartão passam a ser
+    abatidos **no mês da data da compra**, com efeito imediato,
+    substituindo a regra de "orçamento segue o ciclo da fatura" (T-003,
+    citada no item 7). A competência da fatura permanece para o
+    resultado do mês (dashboard, seção 7.2, itens 2 a 5) e para a
+    identificação das faturas em Cartões; os dois critérios não se somam.
+    Na mesma data, ficou definido que a recorrência de orçamento pode
+    ser ativada/reconfigurada na edição (seção 6.13), valendo a partir
+    do mês editado, e que as compras no cartão passam a aparecer na tela
+    de Movimentações, identificadas pelo cartão utilizado (seção 6.6),
+    sem virar movimentação comum.
 
 Divergências que dependem de decisões pendentes da Fase 0 (`tasks.md`)
 foram registradas, mas não resolvidas, e devem ser revistas após a

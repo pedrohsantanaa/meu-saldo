@@ -791,6 +791,50 @@ poderão ser ajustados.
                                                              orçamento.
 
   DELETE             `/budgets/{id}`                         Remover orçamento.
+
+  GET                `/budgets/general?month=YYYY-MM`        Consultar
+                                                              orçamentos gerais
+                                                              (sem cartão).
+
+  POST               `/budgets/general`                      Criar orçamento
+                                                              geral por
+                                                              categoria.
+
+  PUT                `/budgets/general/{id}`                 Atualizar
+                                                              orçamento geral.
+
+  DELETE             `/budgets/general/{id}`                 Remover orçamento
+                                                              geral.
+
+  POST               `/budgets/recurrences`                  Criar série de
+                                                              orçamentos do
+                                                              cartão.
+
+  POST               `/budgets/general/recurrences`          Criar série de
+                                                              orçamentos gerais.
+
+  PUT                `/budgets/{id}/recurrence`              Ativar ou
+                                                              reconfigurar a
+                                                              recorrência a
+                                                              partir do mês
+                                                              editado.
+
+  PUT                `/budgets/general/{id}/recurrence`      Ativar ou
+                                                              reconfigurar a
+                                                              recorrência geral.
+
+  DELETE             `/budgets/recurrences/{id}`             Excluir série do
+                                                              cartão.
+
+  DELETE             `/budgets/general/recurrences/{id}`     Excluir série
+                                                              geral.
+
+  GET                `/movements`                            Listagem unificada
+                                                              de movimentações:
+                                                              movimentações
+                                                              comuns e compras
+                                                              no cartão, com
+                                                              filtros.
   -----------------------------------------------------------------------------
 
 Todas as rotas privadas deverão aplicar autenticação, autorização e
@@ -822,10 +866,11 @@ Para cada combinação de cartão, mês e categoria:
 
 `Restante = orçamento - gastos`
 
-A atribuição ao mês segue a política de contabilização definida em
-T-002 (`spec.md` §7.2): os gastos do mês são as compras atribuídas ao
-ciclo da fatura com vencimento naquele mês. A mesma regra vale para a
-tela de orçamento, as faturas e os relatórios.
+A atribuição ao mês nos orçamentos é a da própria compra (data da
+compra), com abatimento imediato — decisão registrada em `spec.md` §15
+(Fase 12, T-082), que substitui o critério anterior de ciclo da fatura
+(T-003). A competência da fatura permanece para o resultado do mês
+(visão geral, `spec.md` §7.2): os dois critérios nunca se somam.
 
 ### 11.3. Prevenção de dupla contagem
 
@@ -844,7 +889,9 @@ diferentes.
     obrigação, e não como nova despesa de consumo.
 
 A política final de datas e contabilização foi definida em T-002 e está
-registrada em `spec.md` §7.2.
+registrada em `spec.md` §7.2. Os orçamentos detalham o consumo por
+categoria no mês da compra (Fase 12, T-082; `spec.md` §15) sem alterar
+essa política: compra e fatura continuam nunca sendo somadas duas vezes.
 
 ## 12. Responsividade
 

@@ -163,7 +163,7 @@ def test_orcamento_menos_gastos(client, db_session_factory):
         json={
             "card_id": card["id"],
             "category_id": category_id(client, headers, "Alimentação"),
-            "month": "2026-12",
+            "month": "2026-11",
             "budget_amount": "500.00",
         },
         headers=headers,
@@ -172,7 +172,7 @@ def test_orcamento_menos_gastos(client, db_session_factory):
 
     summary = client.get(
         "/api/budgets",
-        params={"month": "2026-12", "card_id": card["id"]},
+        params={"month": "2026-11", "card_id": card["id"]},
         headers=headers,
     ).json()
     row = summary["rows"][0]

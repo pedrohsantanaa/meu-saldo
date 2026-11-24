@@ -4,7 +4,10 @@ Regras (`spec.md` §6.13):
 
 - a combinação usuário + cartão + mês + categoria é única;
 - `Restante = Orçamento − Gastos`, com gastos somando as compras
-  atribuídas à fatura com vencimento no mês (`spec.md` §7.2, T-003);
+  lançadas no cartão no **mês da data da compra** (decisão do produto:
+  o abatimento no orçamento é imediato, como nas demais movimentações);
+  o ciclo da fatura continua valendo para o dashboard (a fatura conta no
+  mês do seu vencimento, `spec.md` §7.2);
 - sem orçamento cadastrado, a categoria é exibida como "Não definido",
   sem assumir zero (AC-072);
 - percentual de utilização só para orçamento maior que zero (T-058);
@@ -26,11 +29,15 @@ from app.core.errors import AppError
 from app.models import (
     CardCategoryBudget,
     Category,
-    CreditCardInvoice,
     CreditCardPurchase,
     User,
 )
-from app.schemas.budget import BudgetCreate, BudgetSeriesCreateCard, BudgetUpdate
+from app.schemas.budget import (
+    BudgetCreate,
+    BudgetRecurrenceCreate,
+    BudgetSeriesCreateCard,
+    BudgetUpdate,
+)
 from app.services.cards import get_owned_card, get_owned_category
 
 ZERO = Decimal("0.00")
@@ -213,21 +220,35 @@ def validate_expense_category(db: Session, user: User, category_id: int) -> Cate
     return category
 
 
+def month_after(reference_month: date) -> date:
+    """Primeiro dia do mês seguinte à referência."""
+    if reference_month.month == 12:
+        return date(reference_month.year + 1, 1, 1)
+    return date(reference_month.year, reference_month.month + 1, 1)
+
+
 def _spent_by_category(
     db: Session, user: User, card_id: int, reference_month: date
 ) -> dict[int, Decimal]:
-    """Gastos por categoria no mês (T-057): compras atribuídas às
-    faturas com vencimento (referência) naquele mês."""
+    """Gastos por categoria no mês: compras lançadas no cartão no mês
+    da data da compra.
+
+    O abatimento no orçamento é imediato (mês da compra); a atribuição
+    à fatura define apenas em qual fatura — e em qual mês do dashboard —
+    a compra consolida (`spec.md` §7.2). Cada compra conta uma única vez
+    e o pagamento de fatura nunca entra nos gastos (T-057).
+    """
+    next_month = month_after(reference_month)
     rows = db.execute(
         select(
             CreditCardPurchase.category_id,
             func.coalesce(func.sum(CreditCardPurchase.total_amount), ZERO),
         )
-        .join(CreditCardInvoice, CreditCardInvoice.id == CreditCardPurchase.invoice_id)
         .where(
             CreditCardPurchase.user_id == user.id,
             CreditCardPurchase.credit_card_id == card_id,
-            CreditCardInvoice.reference_month == reference_month,
+            CreditCardPurchase.purchase_date >= reference_month,
+            CreditCardPurchase.purchase_date < next_month,
         )
         .group_by(CreditCardPurchase.category_id)
     ).all()
@@ -316,6 +337,28 @@ def create_budget_series(
         "recurrence": budget_recurrences.recurrence_payload(record),
         "months": [month_str(budget.reference_month) for budget in budgets],
         "rows": [_budget_payload(db, user, budget) for budget in budgets],
+    }
+
+
+def attach_budget_series(
+    db: Session, user: User, budget_id: int, recurrence: BudgetRecurrenceCreate
+) -> dict:
+    """Ativa ou reconfigura a recorrência a partir do mês do orçamento
+    do cartão (edição de orçamento)."""
+    from app.services import budget_recurrences
+
+    budget = _get_owned_budget(db, user, budget_id)
+    record, rows = budget_recurrences.attach_series(
+        db,
+        user,
+        budget,
+        recurrence=recurrence,
+        budget_model=CardCategoryBudget,
+    )
+    return {
+        "recurrence": budget_recurrences.recurrence_payload(record),
+        "months": [month_str(row.reference_month) for row in rows],
+        "rows": [_budget_payload(db, user, row) for row in rows],
     }
 
 

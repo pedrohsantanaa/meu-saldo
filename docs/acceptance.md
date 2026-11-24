@@ -853,6 +853,73 @@ conflito.
 deverá indicar a posição na série (por exemplo, "Parcela 2/6" ou
 "Recorrente").
 
+### AC-123 --- Ativar recorrência ao editar um orçamento \[P0\]
+
+**Dado** que o usuário possui um orçamento criado sem recorrência,\
+**quando** editá-lo e ativar a opção de recorrência (parcelar valor
+total ou repetir valor mensal) informando o número de meses,\
+**então** a série deverá ser gerada a partir do mês editado — que passa a
+ser o primeiro período — e meses anteriores não deverão ser alterados.
+
+### AC-124 --- Reconfigurar série preserva os meses anteriores \[P0\]
+
+**Dado** que uma linha de orçamento pertence a uma série,\
+**quando** o usuário editar a configuração da recorrência naquele mês,\
+**então** a nova configuração deverá valer a partir do mês editado, os
+meses anteriores deverão preservar seus valores e as linhas da série
+além do novo horizonte deverão ser removidas.
+
+### AC-125 --- Conflito bloqueia a geração da série na edição \[P0\]
+
+**Dado** que algum mês futuro do horizonte já possui orçamento para a
+mesma categoria e escopo fora da própria série,\
+**quando** o usuário tentar ativar ou reconfigurar a recorrência na
+edição,\
+**então** nada deverá ser alterado e o sistema deverá informar os meses
+em conflito.
+
+### AC-126 --- Compra no cartão abate o orçamento no mês da compra \[P0\]
+
+**Dado** que o usuário possui orçamento por categoria em um cartão,\
+**quando** registrar uma compra nesse cartão e naquela categoria,\
+**então** o valor da compra deverá ser abatido imediatamente do
+orçamento do mês da data da compra, independentemente da fatura a que a
+compra é atribuída, sem contagem duplicada e sem alterar orçamentos de
+outros meses.
+
+### AC-127 --- Mudar a data da compra move o abatimento \[P1\]
+
+**Dado** que uma compra já foi contabilizada no orçamento do mês da sua
+data,\
+**quando** o usuário editar a data da compra para outro mês,\
+**então** o abatimento deverá sair do mês anterior e passar a contar no
+orçamento do novo mês, sem duplicidade.
+
+### AC-128 --- Compras no cartão em Movimentações \[P0\]
+
+**Dado** que o usuário possui compras no cartão e movimentações comuns,\
+**quando** abrir a tela de Movimentações,\
+**então** as compras deverão aparecer junto das demais movimentações,
+ordenadas por data, identificadas como "Compra no cartão", apresentando o
+cartão utilizado e a fatura em que consolidam.
+
+### AC-129 --- Filtros de Movimentações incluem compras \[P1\]
+
+**Dado** que a listagem de Movimentações inclui compras no cartão,\
+**quando** o usuário aplicar os filtros de período, tipo, categoria,
+forma de pagamento, cartão e busca,\
+**então** os filtros deverão valer para os dois tipos de lançamento,
+respeitando as particularidades: "Cartão de crédito" e o filtro por
+cartão restringem às compras, e receitas/investimentos as excluem.
+
+### AC-130 --- Editar e excluir compra pela Movimentações \[P0\]
+
+**Dado** que uma compra no cartão aparece na listagem de Movimentações,\
+**quando** o usuário editar ou excluí-la,\
+**então** a ação deverá seguir o fluxo de compra (mantendo a atribuição
+de fatura e a identificação do cartão) e a compra nunca deverá ser
+convertida em movimentação comum.
+
 ## 14. Interface, usabilidade e responsividade
 
 ### AC-077 --- Navegação principal \[P0\]

@@ -127,12 +127,13 @@ def test_fluxo_completo_do_usuario(client, db_session_factory):
     assert card_after["available_limit"] == "5000.00"
 
     # --- Orçamentos (Fase 7) ------------------------------------------
+    # O abatimento segue o mês da compra (10/11), não o da fatura.
     budget = client.post(
         "/api/budgets",
         json={
             "card_id": card["id"],
             "category_id": category_id(client, headers, "Alimentação"),
-            "month": "2026-12",
+            "month": "2026-11",
             "budget_amount": "500.00",
         },
         headers=headers,
@@ -141,7 +142,7 @@ def test_fluxo_completo_do_usuario(client, db_session_factory):
 
     summary = client.get(
         "/api/budgets",
-        params={"month": "2026-12", "card_id": card["id"]},
+        params={"month": "2026-11", "card_id": card["id"]},
         headers=headers,
     ).json()
     assert summary["rows"][0]["spent"] == "300.00"
@@ -155,7 +156,7 @@ def test_fluxo_completo_do_usuario(client, db_session_factory):
     )
     summary = client.get(
         "/api/budgets",
-        params={"month": "2026-12", "card_id": card["id"]},
+        params={"month": "2026-11", "card_id": card["id"]},
         headers=headers,
     ).json()
     december = client.get(

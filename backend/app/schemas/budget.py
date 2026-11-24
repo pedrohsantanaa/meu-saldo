@@ -51,12 +51,19 @@ class BudgetSeriesCreateCard(BudgetSeriesCreate):
 
 
 class BudgetRowRecurrence(BaseModel):
-    """Identificação da série na linha do orçamento (badge)."""
+    """Identificação da série na linha do orçamento (badge).
+
+    `amount` é o valor configurado da série (total parcelado ou valor
+    mensal) e `remaining_total` soma as parcelas a partir deste mês —
+    base para reconfigurar a série na edição.
+    """
 
     id: int
     mode: str
     position: int
     total: int
+    amount: Decimal
+    remaining_total: Decimal
 
 
 class BudgetRecurrenceInfo(BaseModel):

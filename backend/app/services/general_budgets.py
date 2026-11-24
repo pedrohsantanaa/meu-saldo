@@ -5,8 +5,8 @@ Regras (`spec.md` §6.13):
 - a combinação usuário + categoria + mês é única;
 - `Restante = Orçamento − Gastos`, com gastos somando as movimentações
   comuns (tipo despesa) da categoria lançadas no mês (`spec.md` §7.2):
-  compras no cartão seguem o ciclo da fatura nos orçamentos por cartão
-  e nunca contam aqui (AC-114);
+  compras no cartão nunca contam aqui (AC-114) — abatem apenas o
+  orçamento do próprio cartão, no mês da data da compra;
 - despesas fixas e variáveis usam o mesmo mecanismo, conforme o grupo
   da categoria (só categorias de despesa aceitam orçamento);
 - sem orçamento cadastrado, a categoria é exibida como "Não definido",
@@ -27,11 +27,17 @@ from sqlalchemy.orm import Session
 
 from app.core.errors import AppError
 from app.models import CategoryBudget, Transaction, User
-from app.schemas.budget import BudgetCreateGeneral, BudgetSeriesCreate, BudgetUpdate
+from app.schemas.budget import (
+    BudgetCreateGeneral,
+    BudgetRecurrenceCreate,
+    BudgetSeriesCreate,
+    BudgetUpdate,
+)
 from app.services.budgets import (
     ZERO,
     category_names,
     money,
+    month_after,
     month_date,
     month_str,
     row_payload,
@@ -174,11 +180,9 @@ def _spent_by_category(
     db: Session, user: User, reference_month: date
 ) -> dict[int, Decimal]:
     """Gastos por categoria no mês (AC-112): movimentações comuns de
-    despesa lançadas dentro do mês (`spec.md` §7.2)."""
-    if reference_month.month == 12:
-        next_month = date(reference_month.year + 1, 1, 1)
-    else:
-        next_month = date(reference_month.year, reference_month.month + 1, 1)
+    despesa lançadas dentro do mês (`spec.md` §7.2). Compras no cartão
+    ficam de fora (AC-114)."""
+    next_month = month_after(reference_month)
     rows = db.execute(
         select(
             Transaction.category_id,
@@ -217,9 +221,7 @@ def _recurrence_info(db: Session, budgets: list) -> dict[int, dict]:
     return budget_recurrences.row_recurrences(db, budgets)
 
 
-def create_budget_series(
-    db: Session, user: User, payload: BudgetSeriesCreate
-) -> dict:
+def create_budget_series(db: Session, user: User, payload: BudgetSeriesCreate) -> dict:
     """Cria série de orçamentos gerais (T-075, AC-116 a AC-118)."""
     from app.services import budget_recurrences
 
@@ -244,3 +246,25 @@ def delete_budget_series(db: Session, user: User, recurrence_id: int) -> None:
     from app.services import budget_recurrences
 
     budget_recurrences.delete_series(db, user, recurrence_id, general=True)
+
+
+def attach_budget_series(
+    db: Session, user: User, budget_id: int, recurrence: BudgetRecurrenceCreate
+) -> dict:
+    """Ativa ou reconfigura a recorrência a partir do mês do orçamento
+    geral (edição de orçamento)."""
+    from app.services import budget_recurrences
+
+    budget = _get_owned_budget(db, user, budget_id)
+    record, rows = budget_recurrences.attach_series(
+        db,
+        user,
+        budget,
+        recurrence=recurrence,
+        budget_model=CategoryBudget,
+    )
+    return {
+        "recurrence": budget_recurrences.recurrence_payload(record),
+        "months": [month_str(row.reference_month) for row in rows],
+        "rows": [_budget_payload(db, user, row) for row in rows],
+    }

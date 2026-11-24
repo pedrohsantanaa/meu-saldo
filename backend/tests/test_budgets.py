@@ -12,7 +12,7 @@ def create_budget(client, headers, card_id, **overrides):
     payload = {
         "card_id": card_id,
         "category_id": category_id(client, headers, "Alimentação"),
-        "month": "2026-12",
+        "month": "2026-11",
         "budget_amount": "500.00",
     }
     payload.update(overrides)
@@ -21,7 +21,7 @@ def create_budget(client, headers, card_id, **overrides):
     return response.json()
 
 
-def budget_summary(client, headers, card_id, month="2026-12"):
+def budget_summary(client, headers, card_id, month="2026-11"):
     return client.get(
         "/api/budgets",
         params={"month": month, "card_id": card_id},
@@ -57,7 +57,7 @@ def test_impedir_orcamento_duplicado(client, db_session_factory):
         json={
             "card_id": card["id"],
             "category_id": category_id(client, headers, "Alimentação"),
-            "month": "2026-12",
+            "month": "2026-11",
             "budget_amount": "300.00",
         },
         headers=headers,
@@ -89,10 +89,11 @@ def test_orcamentos_independentes_por_cartao(client, db_session_factory):
     assert row_of(summary_jan, "Alimentação")["budget_amount"] == "100.00"
 
 
-def test_gastos_seguem_o_ciclo_da_fatura(client, db_session_factory):
+def test_gastos_contam_no_mes_da_compra(client, db_session_factory):
     headers = auth_client(client)
     card = setup_card(client, headers, db_session_factory)
-    create_budget(client, headers, card["id"])
+    create_budget(client, headers, card["id"], month="2026-11")
+    create_budget(client, headers, card["id"], month="2026-12", budget_amount="300.00")
     # Compra em 10/11: fatura de dezembro (vence 10/12).
     create_purchase(client, headers, card["id"], total_amount="150.00")
     # Compra em 29/11: fatura de janeiro (vence 10/01).
@@ -100,18 +101,40 @@ def test_gastos_seguem_o_ciclo_da_fatura(client, db_session_factory):
         client,
         headers,
         card["id"],
-        description="Compra de janeiro",
+        description="Compra no fim do mês",
         total_amount="80.00",
         purchase_date="2026-11-29",
     )
 
-    # AC-067: só conta a compra atribuída à fatura do mês.
-    december = row_of(budget_summary(client, headers, card["id"]), "Alimentação")
-    january = row_of(
-        budget_summary(client, headers, card["id"], month="2027-01"), "Alimentação"
+    # O abatimento no orçamento é imediato: conta no mês da data da
+    # compra, independentemente da fatura a que é atribuída.
+    november = row_of(budget_summary(client, headers, card["id"]), "Alimentação")
+    december = row_of(
+        budget_summary(client, headers, card["id"], month="2026-12"), "Alimentação"
     )
+    assert november["spent"] == "230.00"
+    assert december["spent"] == "0.00"
+
+
+def test_mudar_a_data_da_compra_move_o_abatimento(client, db_session_factory):
+    headers = auth_client(client)
+    card = setup_card(client, headers, db_session_factory)
+    create_budget(client, headers, card["id"], month="2026-11")
+    create_budget(client, headers, card["id"], month="2026-12", budget_amount="300.00")
+    purchase = create_purchase(client, headers, card["id"], total_amount="150.00")
+
+    # Editar a data para dezembro tira o gasto de novembro.
+    client.put(
+        f"/api/cards/{card['id']}/purchases/{purchase['id']}",
+        json={"purchase_date": "2026-12-05"},
+        headers=headers,
+    )
+    november = row_of(budget_summary(client, headers, card["id"]), "Alimentação")
+    december = row_of(
+        budget_summary(client, headers, card["id"], month="2026-12"), "Alimentação"
+    )
+    assert november["spent"] == "0.00"
     assert december["spent"] == "150.00"
-    assert january["spent"] == "80.00"
 
 
 def test_calcular_restante(client, db_session_factory):

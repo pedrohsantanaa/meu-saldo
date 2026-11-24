@@ -908,7 +908,60 @@ Decisão do responsável pelo produto registrada em 23/11/2026
 com a identidade Cifaro, testes e build verdes e referências
 remanescentes ao nome anterior documentadas.
 
-## 17. Itens fora do MVP
+## 17. Fase 12 --- Ajustes do módulo financeiro
+
+**Objetivo:** ajustar o módulo financeiro conforme decisões do
+responsável pelo produto de 24/11/2026 (`spec.md` §15, item 11):
+permitir ativar/reconfigurar a recorrência na edição de um orçamento,
+abater as compras do cartão no orçamento do mês da compra (efeito
+imediato) e integrar as compras do cartão à tela de Movimentações.
+
+-   [x] **T-081 \[P0\]** Permitir ativar ou reconfigurar a recorrência
+    na edição de um orçamento (por cartão ou geral).
+    -   Endpoints `PUT /api/budgets/{id}/recurrence` e
+        `PUT /api/budgets/general/{id}/recurrence`. A série vale a
+        partir do mês editado (que vira o 1º período); meses anteriores
+        nunca são alterados (AC-123/AC-124); meses futuros já orçados
+        fora da própria série bloqueiam a geração com a lista de
+        conflitos, atomicamente (AC-125); linhas da série além do novo
+        horizonte são removidas.
+    -   Modal de edição com tipo de orçamento, valor e número de meses
+        (`BudgetSection.vue`), com pré-preenchimento da configuração da
+        série (valor total dos meses restantes / valor mensal).
+-   [x] **T-082 \[P0\]** Abater as compras do cartão no orçamento do
+    mês da data da compra.
+    -   Gastos do orçamento por cartão passam a somar as compras
+        lançadas no mês (data da compra), com efeito imediato
+        (AC-126/AC-127); orçamentos gerais seguem sem compras no cartão
+        (AC-114); o dashboard mantém a competência da fatura
+        (`spec.md` §7.2).
+    -   Sem duplicidade: cada compra conta uma única vez por escopo de
+        orçamento; pagamento de fatura continua fora dos gastos
+        (T-057).
+-   [x] **T-083 \[P0\]** Exibir as compras do cartão na tela de
+    Movimentações.
+    -   Listagem unificada `GET /api/movements` (movimentações comuns +
+        compras), ordenada por data, com identificação "Compra no
+        cartão", cartão utilizado e fatura (AC-128); filtros de
+        período, tipo, categoria, forma de pagamento ("Cartão de
+        crédito"), cartão e busca (AC-129); edição e exclusão pelo
+        fluxo de compra (AC-130).
+-   [x] **T-084 \[P0\]** Testes das novas regras.
+    -   Backend: `test_budget_recurrences.py`, `test_budgets.py`,
+        `test_movements.py` (novo) e reconciliação da planilha
+        atualizada (exemplo 4); frontend: `BudgetSection.test.js` e
+        `MovimentacoesPage.test.js`.
+-   [x] **T-085 \[P0\]** Atualizar a documentação.
+    -   `spec.md` §6.6, §6.13, §7.2, §7.4 e §15; `design.md`
+        (endpoints e listagem unificada); `acceptance.md` (AC-123 a
+        AC-130); `AGENTS.md`.
+
+**Critério de conclusão da fase:** as três alterações implementadas sem
+duplicidade de lançamentos, valores consistentes entre Orçamentos,
+Cartões e Movimentações, testes e build verdes e documentação alinhada
+às decisões registradas.
+
+## 18. Itens fora do MVP
 
 Não implementar nesta primeira entrega, salvo decisão explícita
 posterior:
@@ -923,7 +976,7 @@ posterior:
 -   Metas avançadas e relatórios analíticos avançados.
 -   Exportação de dados, caso permaneça como funcionalidade futura.
 
-## 18. Ordem recomendada de execução
+## 19. Ordem recomendada de execução
 
 A ordem abaixo considera dependências técnicas e entrega de valor. As
 fases podem ser divididas em sprints menores.
@@ -966,9 +1019,12 @@ Após a publicação do MVP, a **Fase 10** (T-074 a T-078) expandiu
 orçamentos e compras: orçamento geral sem cartão, recorrência de
 orçamento e registro de compras no cartão pela tela de Movimentações.
 A **Fase 11** (T-079 e T-080) registrou a adoção da identidade do
-produto **Cifaro by PHtech**.
+produto **Cifaro by PHtech**. A **Fase 12** (T-081 a T-085) aplicou os
+ajustes do módulo financeiro: recorrência ativável na edição, abatimento
+das compras do cartão no orçamento do mês da compra e integração das
+compras à tela de Movimentações.
 
-## 19. Definição de pronto (Definition of Done)
+## 20. Definição de pronto (Definition of Done)
 
 Uma tarefa poderá ser considerada concluída quando:
 
@@ -983,7 +1039,7 @@ Uma tarefa poderá ser considerada concluída quando:
 -   [ ] A documentação foi atualizada quando necessário.
 -   [ ] A tarefa foi revisada e não introduz regressões conhecidas.
 
-## 20. Orientações para desenvolvimento com IA
+## 21. Orientações para desenvolvimento com IA
 
 Ao utilizar uma IA de programação para implementar o Cifaro:
 

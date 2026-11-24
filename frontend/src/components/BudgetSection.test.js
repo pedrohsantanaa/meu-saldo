@@ -3,6 +3,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { api } from '../services/api'
 import BudgetSection from './BudgetSection.vue'
+import PurchaseForm from './PurchaseForm.vue'
 
 vi.mock('../services/api', () => ({
   api: {
@@ -240,9 +241,7 @@ describe('BudgetSection', () => {
     api.post.mockResolvedValue({ id: 3 })
     await wrapper
       .findAll('button')
-      .find(
-        (button) => button.attributes('aria-label') === 'Adicionar movimentação',
-      )
+      .find((button) => button.attributes('aria-label') === 'Adicionar movimentação')
       .trigger('click')
     await flushPromises()
 
@@ -376,7 +375,14 @@ describe('BudgetSection', () => {
               spent: '0.00',
               remaining: '200.00',
               usage_percent: 0,
-              recurrence: { id: 7, mode: 'installments', position: 2, total: 6 },
+              recurrence: {
+                id: 7,
+                mode: 'installments',
+                position: 2,
+                total: 6,
+                amount: '1200.00',
+                remaining_total: '1000.00',
+              },
             },
           ],
           totals: { budget_amount: '200.00', spent: '0.00', remaining: '200.00' },
@@ -403,5 +409,145 @@ describe('BudgetSection', () => {
     await flushPromises()
 
     expect(api.delete).toHaveBeenCalledWith('/budgets/recurrences/7')
+  })
+
+  it('informa que os gastos seguem as compras lançadas no cartão', async () => {
+    const wrapper = await mountSection()
+
+    expect(wrapper.text()).toContain('compras lançadas no cartão no período')
+  })
+
+  it('ativa a recorrência ao editar um orçamento avulso', async () => {
+    api.put.mockResolvedValue({
+      recurrence: {
+        id: 7,
+        mode: 'monthly',
+        amount: '200.00',
+        count: 3,
+        start_month: '2026-11',
+      },
+      months: ['2026-11', '2026-12', '2027-01'],
+      rows: [],
+    })
+    const wrapper = await mountSection()
+
+    await wrapper
+      .findAll('button')
+      .find((button) => button.attributes('aria-label') === 'Editar orçamento')
+      .trigger('click')
+    await flushPromises()
+
+    const form = wrapper.find('form')
+    await form.findAll('select')[1].setValue('monthly')
+    await form.findAll('input')[0].setValue('R$ 200,00')
+    await form.findAll('input')[1].setValue('3')
+    await form.trigger('submit')
+    await flushPromises()
+
+    const [path, payload] = api.put.mock.calls[0]
+    expect(path).toBe('/budgets/1/recurrence')
+    expect(payload).toEqual({ mode: 'monthly', amount: 200, count: 3 })
+    expect(wrapper.text()).toContain('Orçamento atualizado para 3 meses')
+  })
+
+  it('reconfigura a série a partir do mês editado, preservando os anteriores', async () => {
+    api.get.mockImplementation((path) => {
+      if (path === '/categories') return Promise.resolve(categories)
+      if (path.startsWith('/budgets')) {
+        return Promise.resolve({
+          month: '2026-11',
+          card_id: 1,
+          rows: [
+            {
+              id: 4,
+              category_id: 1,
+              category_name: 'Alimentação',
+              budget_amount: '200.00',
+              spent: '0.00',
+              remaining: '200.00',
+              usage_percent: 0,
+              recurrence: {
+                id: 7,
+                mode: 'installments',
+                position: 2,
+                total: 6,
+                amount: '1200.00',
+                remaining_total: '800.00',
+              },
+            },
+          ],
+          totals: { budget_amount: '200.00', spent: '0.00', remaining: '200.00' },
+        })
+      }
+      return Promise.resolve([])
+    })
+    api.put.mockResolvedValue({
+      recurrence: {
+        id: 7,
+        mode: 'installments',
+        amount: '800.00',
+        count: 5,
+        start_month: '2026-10',
+      },
+      months: ['2026-11', '2026-12', '2027-01', '2027-02', '2027-03'],
+      rows: [],
+    })
+    const wrapper = await mountSection()
+
+    await wrapper
+      .findAll('button')
+      .find((button) => button.attributes('aria-label') === 'Editar orçamento')
+      .trigger('click')
+    await flushPromises()
+
+    const form = wrapper.find('form')
+    // Pré-preenchimento da série: modo, total dos meses restantes e
+    // quantidade de meses a partir deste mês.
+    expect(form.findAll('select')[1].element.value).toBe('installments')
+    expect(form.findAll('input')[0].element.value).toContain('800')
+    expect(form.findAll('input')[1].element.value).toBe('5')
+
+    await form.trigger('submit')
+    await flushPromises()
+
+    const [path, payload] = api.put.mock.calls[0]
+    expect(path).toBe('/budgets/4/recurrence')
+    expect(payload).toEqual({ mode: 'installments', amount: 800, count: 5 })
+  })
+
+  it('edita apenas o valor quando o orçamento continua único', async () => {
+    api.put.mockResolvedValue({ id: 1, budget_amount: '450.00' })
+    const wrapper = await mountSection()
+
+    await wrapper
+      .findAll('button')
+      .find((button) => button.attributes('aria-label') === 'Editar orçamento')
+      .trigger('click')
+    await flushPromises()
+
+    const form = wrapper.find('form')
+    await form.find('input').setValue('R$ 450,00')
+    await form.trigger('submit')
+    await flushPromises()
+
+    const [path, payload] = api.put.mock.calls[0]
+    expect(path).toBe('/budgets/1')
+    expect(payload).toEqual({ budget_amount: 450 })
+  })
+
+  it('padroniza a data da compra dentro do mês exibido', async () => {
+    const wrapper = await mountSection()
+
+    await wrapper
+      .findAll('button')
+      .find((button) => button.attributes('aria-label') === 'Adicionar compra')
+      .trigger('click')
+    await flushPromises()
+
+    const initial = wrapper.findComponent(PurchaseForm).props('initial')
+    // O período exibido é 2026-11: a compra nasce no mês do orçamento,
+    // para descontar imediatamente o saldo em tela.
+    expect(initial.purchase_date.startsWith('2026-11')).toBe(true)
+    expect(initial.category_id).toBe(1)
   })
 })

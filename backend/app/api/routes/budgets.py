@@ -8,6 +8,7 @@ from app.schemas.budget import (
     MONTH_PATTERN,
     BudgetCreate,
     BudgetCreateGeneral,
+    BudgetRecurrenceCreate,
     BudgetRecurrenceCreated,
     BudgetRow,
     BudgetSeriesCreate,
@@ -72,9 +73,7 @@ def list_general_budgets(
     return general_budgets_service.summary(db, current_user, month)
 
 
-@router.post(
-    "/general", response_model=BudgetRow, status_code=status.HTTP_201_CREATED
-)
+@router.post("/general", response_model=BudgetRow, status_code=status.HTTP_201_CREATED)
 def create_general_budget(
     payload: BudgetCreateGeneral,
     current_user: User = Depends(get_current_user),
@@ -117,6 +116,23 @@ def update_general_budget(
     return general_budgets_service.update_budget(db, current_user, budget_id, payload)
 
 
+@router.put(
+    "/general/{budget_id}/recurrence",
+    response_model=BudgetRecurrenceCreated,
+)
+def attach_general_budget_recurrence(
+    budget_id: int,
+    payload: BudgetRecurrenceCreate,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+) -> dict:
+    """Ativa/reconfigura a recorrência do orçamento geral a partir do
+    mês da linha editada (meses anteriores preservados)."""
+    return general_budgets_service.attach_budget_series(
+        db, current_user, budget_id, payload
+    )
+
+
 @router.delete("/general/{budget_id}", status_code=status.HTTP_204_NO_CONTENT)
 def delete_general_budget(
     budget_id: int,
@@ -134,6 +150,18 @@ def update_budget(
     db: Session = Depends(get_db),
 ) -> dict:
     return budgets_service.update_budget(db, current_user, budget_id, payload)
+
+
+@router.put("/{budget_id}/recurrence", response_model=BudgetRecurrenceCreated)
+def attach_budget_recurrence(
+    budget_id: int,
+    payload: BudgetRecurrenceCreate,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+) -> dict:
+    """Ativa/reconfigura a recorrência do orçamento do cartão a partir
+    do mês da linha editada (meses anteriores preservados)."""
+    return budgets_service.attach_budget_series(db, current_user, budget_id, payload)
 
 
 @router.delete("/{budget_id}", status_code=status.HTTP_204_NO_CONTENT)

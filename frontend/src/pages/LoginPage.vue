@@ -52,9 +52,7 @@ async function onSubmit() {
           <span class="text-2xl font-semibold text-neutral-900">Cifaro</span>
         </div>
         <p class="text-xs tracking-wide text-neutral-400">by PHtech</p>
-        <p class="mt-1 text-sm italic text-neutral-500">
-          Sua vida financeira em equilíbrio.
-        </p>
+        <p class="mt-1 text-sm italic text-neutral-500">Sua vida financeira em equilíbrio.</p>
       </div>
 
       <h1 class="mb-1 text-center text-lg">Entrar</h1>
